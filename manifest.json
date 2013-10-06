@@ -1,0 +1,21 @@
+{
+  "author": {
+    "name": "Totango",
+    "email": "support@totango.com"
+  },
+
+  "location": ["ticket_sidebar", "new_ticket_sidebar"],
+  "defaultLocale": "en",
+  "private": false,
+  "singleInstall": true,
+  "frameworkVersion": "1.0",
+  "version": "1.0",
+
+  "parameters": [
+    {
+      "name": "api_key",
+      "type": "text",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+title: "Shopify App"
+packages:
+  - default
+  - app_shopify_app
+
+parts:
+  - translation:
+      key: "txt.apps.shopify_app.app.description"
+      title: "Description text of the App"
+      value: "Displays user and account insights from Totango."
+  - translation:
+      key: "txt.apps.shopify_app.app.parameters.api_key.label"
+      title: "Token from the user"
+      value: "Api Key"
+  - translation:
+      key: "txt.apps.shopify_app.global.error.title"
+      title: "Error message"
+      value: "An error occurred"
+  - translation:
+      key: "txt.apps.shopify_app.global.error.message"
+      title: "Help text of the error message"
+      value: "Please try the previous action again."
+  - translation:
+      key: "txt.apps.shopify_app.global.error.customerNotFound"
+      title: "Error message"
+      value: "User could not be found."
+  - translation:
+      key: "txt.apps.shopify_app.global.error.orderNotFound"
+      title: "Error message"
+      value: "User could not be found."
+  - translation:
+      key: "txt.apps.shopify_app.global.error.data"
+      title: "Error message"
+      value: "Ticket data could not be read."
+  - translation:
+      key: "txt.apps.shopify_app.global.error.orders"
+      title: "Error message"
+      value: "An error occurred when querying orders"
+  - translation:
+      key: "txt.apps.shopify_app.global.error.order"
+      title: "Error message"
+      value: "An error occurred when querying this order"
+  - translation:
+      key: "txt.apps.shopify_app.global.error.wrongOrder"
+      title: "Error message"
+      value: "Order e-mail does not match requester e-mail"
+  - translation:
+      key: "txt.apps.shopify_app.global.loading"
+      title: "Wait message when the app loads"
+      value: "Waiting for user data..."
+  - translation:
+      key: "txt.apps.shopify_app.global.requesting"
+      title: "Wait message when the app loads"
+      value: "Requesting user data from Totango..."
+  - translation:
+      key: "txt.apps.shopify_app.orders.id"
+      title: "Title inside the app to show the recent orders for that specific user"
+      value: "RECENT ORDERS"
+  - translation:
+      key: "txt.apps.shopify_app.orders.status"
+      title: "Title inside the app to show the fulfillment status of the order"
+      value: "FULFILLMENT"
+  - translation:
+      key: "txt.apps.shopify_app.customer.no_notes"
+      title: "Message when there are no notes"
+      value: "No notes have been added yet."
+  - translation:
+      key: "txt.apps.shopify_app.order.ticket"
+      title: "Details of the order"
+      value: "Order details for"
+  - translation:
+      key: "txt.apps.shopify_app.order.closed"
+      title: "Message to be displayed in the app when the order has been closed"
+      value: "This order was closed"
+  - translation:
+      key: "txt.apps.shopify_app.order.cancelled"
+      title: "Message to be displayed in the app when the order has been cancelled"
+      value: "This order was cancelled"
+  - translation:
+      key: "txt.apps.shopify_app.order.cancel_reason"
+      title: "Reason of cancellation title"
+      value: "Cancel reason: "
+  - translation:
+      key: "txt.apps.shopify_app.order.date"
+      title: "Date"
+      value: "Date: "
+  - translation:
+      key: "txt.apps.shopify_app.order.payment_status"
+      title: "Status of the payment"
+      value: "Payment Status"
+  - translation:
+      key: "txt.apps.shopify_app.order.fulfillment_status"
+      title: "Status of fulfillment"
+      value: "Fulfillment Status"
+  - translation:
+      key: "txt.apps.shopify_app.order.notes"
+      title: "Notes about the order"
+      value: "Order Notes"
+  - translation:
+      key: "txt.apps.shopify_app.order.addresses"
+      title: "Adresses of the user"
+      value: "Addresses"
+  - translation:
+      key: "txt.apps.shopify_app.order.billing"
+      title: "Billing adress of the order"
+      value: "Billing"
+  - translation:
+      key: "txt.apps.shopify_app.order.shipping"
+      title: "Shipping adress of the order"
+      value: "Shipping"
+  - translation:
+      key: "txt.apps.shopify_app.order.subtotal"
+      title: "Subtotal price of the order"
+      value: "Subtotal Price"
+  - translation:
+      key: "txt.apps.shopify_app.order.shipping_lines"
+      title: "Shipping costs"
+      value: "Shipping"
+  - translation:
+      key: "txt.apps.shopify_app.order.total_price"
+      title: "Total price"
+      value: "Total Price"
+  - translation:
+      key: "txt.apps.shopify_app.order.date_created"
+      title: "Date created"
+      value: "Date Created"
+

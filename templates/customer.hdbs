@@ -1,0 +1,112 @@
+<div class="totUserBlock">
+
+  <div class="totUserTop">
+      <div class="totUserAvatar">
+        <img src="{{customer.avatar}}"/>
+      </div>
+      <div class="totUserLinks">
+        <h4 class="totHeaderLink"><a href="{{customer.uri}}" target="_blank">{{customer.email}} </a></h4>
+        <div class="totUserOnlineIndicator {{#if customer.isOnline}}totOnline{{/if}}"><div class="totOnlineCircle">&#x25cf;</div>{{#if customer.isOnline}}Online Now{{else}}Offline{{/if}}</div>
+        <h4 class="totHeaderLink"><a href="{{customer.accountUri}}" target="_blank">{{customer.accountDisplayName}}</a> <div class="totAccountId">({{customer.accountName}})</div></h4>
+      </div>
+      <br clear="both">
+  </div>
+
+  <h4 class="totDivider">User Insights</h4>
+
+  <h5>First Seen</h5>
+  <h5 class="totInsights">{{customer.userFirstSeen}}</h5>
+  <br clear="both">
+  <h5>Last Seen</h5>
+  <h5 class="totInsights">{{customer.userLastSeen}}</h5>
+  <br clear="both">
+  {{#if customer.tags}}
+    <h5 class="totLabeler">Tags:</h5>
+    <div class="totExpandBox">
+    {{#customer.tags}}
+      <div class="totLabel totTag {{cssClass}}" onclick="{{onClick}}">{{tag}}</div>
+    {{/customer.tags}}
+    </div>
+    <br clear="both"/>
+  {{/if}}
+
+
+  {{#if customer.finalUsageActions}}
+      <h5 class="totLabeler">Recent actions:</h5>
+      <div class="totExpandBox">
+      {{#customer.finalUsageActions}}
+        <div class="totLabel totCounter {{cssClass}}" onclick="{{onClick}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
+      {{/customer.finalUsageActions}}
+      </div>
+      <br clear="both"/>
+  {{/if}}
+
+  {{#if customer.finalUsageModules}}
+      <h5 class="totLabeler">Recent Modules:</h5>
+      <div class="totExpandBox">
+      {{#customer.finalUsageModules}}
+        <div class="totLabel totCounter {{cssClass}}" onclick="{{onClick}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
+      {{/customer.finalUsageModules}}
+      </div>
+      <br clear="both"/>
+  {{/if}}
+
+</div>
+
+
+
+
+
+
+
+
+
+
+{{#with customer}}
+
+
+
+
+
+  <br/>
+  <h4 class="totDivider">Account Insights</h4>
+
+
+
+
+
+
+{{! Account Stuff}}
+  <h5>Status</h5>
+  <h5 class="totInsights">{{accountLifecycle}} {{#if showStatus}}({{accountStatus}}){{/if}}</h5>
+  <br clear="both">
+
+  <h5>Account Health</h5>
+  <h5 class="totInsights {{healthCSS}}">{{accountHealth}}</h5>
+  <br clear="both">
+
+  <h5>Engagement Score</h5>
+  <h5 class="totInsights">{{accountEngagement}} <div class="totEngagementTrend">{{#if accountEngagementShowTrend}} <div class="totEngagementArrow">{{#if accountEngagementTrendUp}}&#x25B2;{{else}}&#x25BC;{{/if}}</div>{{accountEngagementTrend}}{{/if}}</div></h5>
+  <br clear="both">
+
+  <h5>Usage Fequency</h5>
+  <h5 class="totInsights">{{accountUsageFrequency}}</h5>
+  <br clear="both">
+
+  <h5>Account Created</h5>
+  <h5 class="totInsights">{{accountCreateDate}}</h5>
+  <br clear="both">
+
+
+{{/with}}
+
+
+{{#if customer.accountTags}}
+    <h5 class="totLabeler">Account Tags:</h5>
+    <div class="totExpandBox">
+    {{#customer.accountTags}}
+      <div class="totLabel totTag {{cssClass}}" onclick="{{onClick}}">{{tag}}</div>
+    {{/customer.accountTags}}
+    </div>
+    <br clear="both"/>
+{{/if}}
