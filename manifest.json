@@ -21,6 +21,11 @@
       "name": "fallback_custom_field",
       "type": "text",
       "required": false
+    },
+    {
+      "name": "use_hashed_email",
+      "type": "checkbox",
+      "required": false
     }
   ]
 }
