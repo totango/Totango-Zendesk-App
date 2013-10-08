@@ -23,18 +23,18 @@
       },
 
       'getProfile' : function(email) {
-        return this.getRequest('https://app.totango.com/api/v1/search/name.json?query='+email+'&get=users');
+        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users', email));
       },
       'getUserData' : function(email,accountName) {
-        return this.getRequest('https://app.totango.com/api/v1/user/get.json?account='+accountName+'&name='+email);
+        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=', accountName));
       },
       'getUserStream' : function(email,accountName) {
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
-        return this.getRequest('https://app.totango.com/api/v1/realtime/stream.json?start='+tStartStream.toISOString()+'&account='+accountName+'&user='+email);
+        return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
-        return this.getRequest('https://app.totango.com/api/v1/account.json?name='+accountName+'&return=all');
+        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all'), accountName);
       }
     },
 
@@ -55,29 +55,22 @@
       if(!data.firstLoad){
         return;
       }
-      this.ajax('getZendeskUser').done((function() {
-        this.hasActivated = true;
-        this.currAttempt = 0;
-        // this.storeUrl = this.storeUrl || this.checkStoreUrl(this.settings.url);
-        this.requiredProperties = [
-          'ticket.requester.email'
-        ];
+      _.defer(function() {
+        this.ajax('getZendeskUser').done(function() {
+          // this.storeUrl = this.storeUrl || this.checkStoreUrl(this.settings.url);
 
-        if (this.currentLocation() === 'ticket_sidebar') {
-          this.allRequiredPropertiesExist();
-        } else if (this.ticket().requester()) {
-          // user may have selected a requester and reloaded the app
-          console.log('CHECK THISSS Query customer ');
-          this.queryCustomer();
-        }
-      }).bind(this));
+          if (this.ticket().requester()) {
+            // user may have selected a requester and reloaded the app
+            console.log('CHECK THISSS Query customer ');
+            this.queryCustomer();
+          }
+        }.bind(this));
+      }.bind(this));
     },
 
     queryCustomer: function() {
-      if (this.hasActivated) {
-        this.switchTo('requesting');
-        this.ajax('getProfile', this.ticket().requester().email());
-      }
+      this.switchTo('requesting');
+      this.ajax('getProfile', this.ticket().requester().email());
     },
 
     getRequest: function(resource) {
@@ -86,7 +79,7 @@
           // 'Authorization': this.settings.api_key
           'app-token': this.settings.api_key
         },
-        url      : resource,
+        url      : helpers.fmt("https://app.totango.com/api/v1%@", resource),
         method   : 'GET',
         dataType : 'json'
       };
@@ -98,10 +91,6 @@
 
     handleChanged: _.debounce(function(e) {
       // test if change event fired before app.activated
-      if (!this.hasActivated) {
-        return;
-      }
-
     }, 500),
 
     handleProfile: function(data) {
@@ -110,48 +99,58 @@
         return;
       }
 
-      if (data.response && data.response.hits && data.response.hits.users && data.response.hits.users.list  && data.response.hits.users.list.length > 0)
+      if (this.safeGetPath(data, 'response.hits.users.list.length') > 0)
       {
-           var targetObj = data.response.hits.users.list[0];
-           this.customer = {
-              email : targetObj.name
-            };
+        var targetObj = data.response.hits.users.list[0];
+        this.customer = {
+          email: targetObj.name,
+          isOnline: targetObj.is_online,
+          avatar: this.getGravatarImgLink(targetObj.name, 80),
+          uri: this.buildURI('https://app.totango.com/#!/userProfile', {
+            user: targetObj.name,
+            customer: targetObj.account.name
+          }),
+          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
+            customer: targetObj.account.name
+          }),
+          accountName: targetObj.account.name,
+          accountDisplayName: targetObj.account.display_name
+        };
 
-            this.customer.isOnline = targetObj.is_online;
-            this.customer.avatar = this.getGravatarImgLink(targetObj.name,80);
-            this.customer.uri = ('https://app.totango.com/#!/userProfile?user='+encodeURIComponent(targetObj.name)+'&customer='+encodeURIComponent(targetObj.account.name));
-            this.customer.accountUri = ('https://app.totango.com/#!/customerDetails?customer='+encodeURIComponent(targetObj.account.name));
-            this.customer.accountName = targetObj.account.name;
-            this.customer.accountDisplayName = targetObj.account.display_name;
+        this.clearCanvasRefresh();
 
+        this.ajax('getUserData', targetObj.name, targetObj.account.name);
+        this.ajax('getUserStream', targetObj.name, targetObj.account.name);
+        this.ajax('getAccountData',  targetObj.account.name);
+        var refreshWidget = setInterval(function(){
           this.clearCanvasRefresh();
-
           this.ajax('getUserData', targetObj.name, targetObj.account.name);
           this.ajax('getUserStream', targetObj.name, targetObj.account.name);
           this.ajax('getAccountData',  targetObj.account.name);
-          var that = this;
-          var refreshWidget=setInterval(function(){
-            that.clearCanvasRefresh();
-            that.ajax('getUserData', targetObj.name, targetObj.account.name);
-            that.ajax('getUserStream', targetObj.name, targetObj.account.name);
-            that.ajax('getAccountData',  targetObj.account.name);
-          },120000);
+        }.bind(this), 120000);
 
       } else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
       }
-      return;
+    },
 
-
+    // Build a URI with parameters.
+    //
+    // buildURI("http://example.com/", {arg1: "foo", arg2: "hello/world"})
+    // #=> "http://example.com/?arg1=foo&arg2=hello%2Fworld"
+    buildURI: function(uri, args) {
+      if (args) {
+        uri += "?" + _.map(args, function(value, key) {
+          return [key, encodeURIComponent(value)].join('=');
+        }).join('&');
+      }
+      return uri;
     },
 
     handleUserData: function(data) {
-
       if (data.errors) {
-        this.showError(this.I18n.t('global.error.orders'), data.errors);
-        return;
+        return this.showError(this.I18n.t('global.error.orders'), data.errors);
       }
-
 
       if (data.user)
       {
@@ -161,13 +160,11 @@
         this.customer.userFirstSeen = this.timeago(tmpUser.first_activity_time);
         this.customer.userLastSeen = this.timeago(tmpUser.last_activity_time);
 
-
         var tmpuserTagsArr = tmpUser.tags;
         var finalUserTags = [];
         var rowCharCount=0;
         var tmpTagObj;
         var hasExpand = false;
-        var tmpExpandObj;
 
         // User Tags
         for (var x =0; x< tmpuserTagsArr.length;x++)
@@ -184,12 +181,11 @@
 
             if (!hasExpand)
             {
-              tmpExpandObj = {
+              finalUserTags.push({
                 "tag" : "More...",
                 "cssClass" : 'totMoreLessButton totExpandButton ',
                 "onClick": "this.parentNode.className = '';"
-              };
-              finalUserTags.push(tmpExpandObj);
+              });
               hasExpand = true;
             }
             tmpTagObj.cssClass = 'totExpand';
@@ -198,22 +194,17 @@
         }
         if (hasExpand)
         {
-          tmpExpandObj = {
+          finalUserTags.push({
             "tag" : "Less...",
             "cssClass" : 'totExpand totMoreLessButton totExtractButton',
             "onClick": "this.parentNode.className = 'totExpandBox';"
-          };
-          finalUserTags.push(tmpExpandObj);
+          });
         }
         this.customer.tags =  finalUserTags;
 
         this.customer.canvasHasUser = true;
         this.attemptCanvasRefresh();
-
       }
-
-
-
     },
 
     clearCanvasRefresh: function() {
@@ -226,18 +217,16 @@
       if (this.customer.canvasHasUser && this.customer.canvasHasStream && this.customer.canvasHasAccount)
       {
         this.updateTemplate('customer', {
-                customer: this.customer
-              });
+          customer: this.customer
+        });
       }
       else
       {
         // console.log('still pending');
       }
-
     },
 
     handleUserStream: function(data) {
-
       var maxUsageShow = 100;
 
       if (data.errors) {
@@ -265,34 +254,26 @@
         }
       }
 
-
       // Actions calculations
       var tmpActionsObj = this.customer.totActions;
       var tmpUsageActionsArr = [];
-      var tmpObj, tmpValue;
-      for(var prop in tmpActionsObj) {
-            if(tmpActionsObj.hasOwnProperty(prop))
-            {
-              tmpValue = tmpActionsObj[prop];
-              tmpUsageActionsArr.push(
-                {
-                  "usage":prop,
-                  "usage_count":tmpValue,
-                  "cssClass":'totFirst'
-                }
-              );
-
-            }
+      for (var prop in tmpActionsObj) {
+        if(tmpActionsObj.hasOwnProperty(prop))
+        {
+          tmpUsageActionsArr.push({
+            usage: prop,
+            usage_count: tmpActionsObj[prop],
+            cssClass: 'totFirst'
+          });
         }
+      }
       tmpUsageActionsArr.sort(function(a, b) {
-          return b.usage_count - a.usage_count;
+        return b.usage_count - a.usage_count;
       });
 
       var finalUsageActions = [];
-      var rowCharCount =0;
-
+      var rowCharCount = 0;
       var hasExpand = false;
-      var tmpExpandObj;
 
       for (var z =0; z< Math.min(tmpUsageActionsArr.length,maxUsageShow);z++)
       {
@@ -303,12 +284,11 @@
         {
           if (!hasExpand)
           {
-            tmpExpandObj = {
+            finalUsageActions.push({
               "usage" : "More...",
               "cssClass" : 'totMoreLessButton totExpandButton ',
               "onClick": "this.parentNode.className = '';"
-            };
-            finalUsageActions.push(tmpExpandObj);
+            });
             hasExpand = true;
           }
 
@@ -318,35 +298,29 @@
       }
       if (hasExpand)
       {
-        tmpExpandObj = {
+        finalUsageActions.push({
           "usage" : "Less...",
           "cssClass" : 'totExpand totMoreLessButton totExtractButton',
           "onClick": "this.parentNode.className = 'totExpandBox';"
-        };
-        finalUsageActions.push(tmpExpandObj);
+        });
       }
       this.customer.finalUsageActions = finalUsageActions;
 
       // Modules Calculations
       var tmpModulesObj = this.customer.totModules;
       var tmpUsageModulesArr = [];
-      for(var prop2 in tmpModulesObj) {
-            if(tmpModulesObj.hasOwnProperty(prop2))
-            {
-              tmpValue = tmpModulesObj[prop2];
-              tmpUsageModulesArr.push(
-                {
-                  "usage":prop2,
-                  "usage_count":tmpValue
-                }
-              );
-
-            }
+      for (var prop2 in tmpModulesObj) {
+        if (tmpModulesObj.hasOwnProperty(prop2))
+        {
+          tmpUsageModulesArr.push({
+            usage: prop2,
+            usage_count: tmpModulesOjb[prop2]
+          });
         }
+      }
       tmpUsageModulesArr.sort(function(a, b) {
           return b.usage_count - a.usage_count;
       });
-
 
       var finalUsageModules = [];
       rowCharCount =0;
@@ -360,12 +334,11 @@
         {
           if (!hasExpand)
           {
-            tmpExpandObj = {
+            finalUsageModules.push({
               "usage" : "More...",
               "cssClass" : 'totMoreLessButton totExpandButton ',
               "onClick": "this.parentNode.className = '';"
-            };
-            finalUsageModules.push(tmpExpandObj);
+            });
             hasExpand = true;
           }
           tmpUsageModulesArr[x].cssClass = 'totExpand';
@@ -374,18 +347,16 @@
       }
       if (hasExpand)
       {
-        tmpExpandObj = {
+        finalUsageModules.push({
           "usage" : "Less...",
           "cssClass" : 'totExpand totMoreLessButton totExtractButton',
           "onClick": "this.parentNode.className = 'totExpandBox';"
-        };
-        finalUsageModules.push(tmpExpandObj);
+        });
       }
       this.customer.finalUsageModules = finalUsageModules;
 
       this.customer.canvasHasStream = true;
       this.attemptCanvasRefresh();
-
     },
 
     mergeRecentUsage: function(type,usage) {
@@ -417,7 +388,6 @@
     },
 
     handleAccountData: function(data) {
-
       if (data.errors) {
         this.showError(this.I18n.t('global.error.orders'), data.errors);
         return;
@@ -482,23 +452,19 @@
         // Account tags
         var totAttribute;
         var tmpAccountTags = [];
-        var rowCharCount =0;
+        var rowCharCount = 0;
         var hasExpand = false;
-        var tmpTagObj;
-        var tmpExpandObj;
 
-        for(var prop in tmpAccount.attributes) {
+        for (var prop in tmpAccount.attributes) {
             if(tmpAccount.attributes.hasOwnProperty(prop))
             {
               totAttribute = tmpAccount.attributes[prop];
               if (totAttribute.type==='Tag')
               {
-
-
                 rowCharCount += 8;
                 rowCharCount += totAttribute.key.length;
 
-                tmpTagObj = {
+                var tmpTagObj = {
                     "tag" : totAttribute.key,
                     "cssClass" : 'totFirst'
                 };
@@ -506,12 +472,11 @@
                 {
                   if (!hasExpand)
                   {
-                    tmpExpandObj = {
+                    tmpAccountTags.push({
                       "tag" : "More...",
                       "cssClass" : 'totMoreLessButton totExpandButton ',
                       "onClick": "this.parentNode.className = '';"
-                    };
-                    tmpAccountTags.push(tmpExpandObj);
+                    });
                     hasExpand = true;
                   }
                   tmpTagObj.cssClass = 'totExpand';
@@ -523,16 +488,14 @@
         }
         if (hasExpand)
         {
-          tmpExpandObj = {
+          tmpAccountTags.push({
             "tag" : "Less...",
             "cssClass" : 'totExpand totMoreLessButton totExtractButton',
             "onClick": "this.parentNode.className = 'totExpandBox';"
-          };
-          tmpAccountTags.push(tmpExpandObj);
+          });
         }
 
         this.customer.accountTags = tmpAccountTags;
-
 
         this.customer.canvasHasAccount = true;
         this.attemptCanvasRefresh();
@@ -751,21 +714,13 @@
       if (email)
       {
         mail = MD5(email.trim().toLowerCase()).toString();
-
       }
       if (size==null)
       {
         size=80;
       }
-
-
       return "//www.gravatar.com/avatar/" + mail +"?size="+size+"&default=https%3A%2F%2Fapp.totango.com%2Fimages%2Fdefault-userpic-generic.gif";
     },
-
-
-
-
-
 
     timeago: function(dateUnix){
       var date = new Date(dateUnix);
@@ -834,11 +789,7 @@
         }
 
         return tr;
-
-
     },
-
-
 
     localeDate: function(date) {
       return new Date(date).toLocaleString(this.locale);
@@ -846,7 +797,6 @@
 
     // JQUERY ?
     // this.$(e.target).parent().next('p').toggleClass('hide');
-
 
     updateTemplate: function(name, data, klass) {
       if (this.currentState !== 'profile') {
@@ -870,46 +820,14 @@
       }
     },
 
-    allRequiredPropertiesExist: function() {
-      if (this.requiredProperties.length > 0) {
-        var valid = this.validateRequiredProperty(this.requiredProperties[0]);
-
-        // prop is valid, remove from array
-        if (valid) {
-          this.requiredProperties.shift();
-        }
-
-        if (this.requiredProperties.length > 0 && this.currAttempt < this.MAX_ATTEMPTS) {
-          if (!valid) {
-            ++this.currAttempt;
-          }
-
-          _.delay(_.bind(this.allRequiredPropertiesExist, this), 100);
-          return;
-        }
-      }
-
-      if (this.currAttempt < this.MAX_ATTEMPTS) {
-        this.trigger('requiredProperties.ready');
-      } else {
-        this.showError(null, this.I18n.t('global.error.data'));
-      }
-    },
-
-    safeGetPath: function(propertyPath) {
+    safeGetPath: function(object, propertyPath) {
       return _.inject( propertyPath.split('.'), function(context, segment) {
         if (context == null) { return context; }
         var obj = context[segment];
         if ( _.isFunction(obj) ) { obj = obj.call(context); }
         return obj;
-      }, this);
+      }, object);
     },
-
-    validateRequiredProperty: function(propertyPath) {
-      var value = this.safeGetPath(propertyPath);
-      return value != null && value !== '' && value !== 'no';
-    },
-
 
     handleFail: function() {
       // Show fail message
@@ -917,5 +835,4 @@
     }
 
   };
-
 }());
