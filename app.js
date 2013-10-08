@@ -6,6 +6,7 @@
 
     defaultState: 'loading',
     locale: undefined,
+    usingCustomfieldFallback: false,
 
     storeUrl: '',
 
@@ -26,7 +27,7 @@
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users', email));
       },
       'getUserData' : function(email,accountName) {
-        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=', accountName));
+        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
         var tNowStream = new Date();
@@ -34,7 +35,7 @@
         return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
-        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all'), accountName);
+        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all', accountName));
       }
     },
 
@@ -129,7 +130,13 @@
           this.ajax('getAccountData',  targetObj.account.name);
         }.bind(this), 120000);
 
-      } else {
+      }
+      else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
+        this.usingCustomfieldFallback = true;
+        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        this.ajax('getProfile', this.ticket().customField(fieldKey));
+      }
+      else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
       }
     },
@@ -314,7 +321,7 @@
         {
           tmpUsageModulesArr.push({
             usage: prop2,
-            usage_count: tmpModulesOjb[prop2]
+            usage_count: tmpModulesObj[prop2]
           });
         }
       }
