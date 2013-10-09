@@ -24,7 +24,7 @@
       },
 
       'getProfile' : function(email) {
-        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users', email));
+        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users&src=zendeskApp', email));
       },
       'getUserData' : function(email,accountName) {
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@', accountName, email));
