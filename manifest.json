@@ -14,7 +14,7 @@
   "parameters": [
     {
       "name": "api_key",
-      "type": "text",
+      "type": "password",
       "required": true
     },
     {
