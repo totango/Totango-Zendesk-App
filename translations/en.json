@@ -4,6 +4,12 @@
     "parameters": {
       "api_key": {
         "label": "Api Key"
+      },
+      "fallback_custom_field": {
+        "label": "Fallback Custom Field"
+      },
+      "use_hashed_email": {
+        "label": "Perform queries using hashed emails"
       }
     }
   },
