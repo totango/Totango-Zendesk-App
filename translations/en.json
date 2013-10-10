@@ -35,7 +35,8 @@
     "orders_count": "Orders count",
     "total_spent": "Total Spent",
     "notes": "Notes",
-    "no_notes": "No notes have been added yet."
+    "no_notes": "No notes have been added yet.",
+    "show_more": "Wrong user? Show more results."
   },
   "order": {
     "ticket": "Order details for",
