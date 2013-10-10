@@ -68,7 +68,6 @@
 
           if (this.ticket().requester()) {
             // user may have selected a requester and reloaded the app
-            console.log('CHECK THISSS Query customer ');
             this.queryCustomer();
           }
         }.bind(this));
