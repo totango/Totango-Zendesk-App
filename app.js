@@ -147,6 +147,7 @@
     },
 
     handleProfile: function(data) {
+      var fieldKey;
       if (data.errors) {
         this.showError(null, data.errors);
         return;
@@ -191,11 +192,11 @@
       }
       else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
         this.usingCustomfieldFallback = true;
-        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
         this.ajax('getProfile', this.ticket().customField(fieldKey));
       }
       else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
-        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
         this.ajax('searchAccounts', this.ticket().customField(fieldKey));
       }
       else {
