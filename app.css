@@ -250,3 +250,12 @@ color: black;
   padding-top: 1.5em;
   display: inline-block;
 }
+
+
+.totWebsite {
+	display: block;
+	text-align: center;
+	padding-top: 15px;
+	font-size: 15px;
+	margin-bottom: -28px;
+}
