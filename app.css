@@ -244,3 +244,8 @@ color: black;
 	font-size: 11px;
 	display: inline-block;
 }
+
+.showMore {
+  padding-top: 1.5em;
+  display: inline-block;
+}
