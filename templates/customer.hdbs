@@ -110,3 +110,8 @@
     </div>
     <br clear="both"/>
 {{/if}}
+
+
+{{#if moreHits}}
+    <a href="#" class='showMore'>{{t "customer.show_more"}}</a>
+{{/if}}

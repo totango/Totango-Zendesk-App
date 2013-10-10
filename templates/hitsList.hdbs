@@ -1,0 +1,11 @@
+<h3>Full hits list</h3>
+
+<ul>
+  {{#each hits}}
+    <li><a href="{{url}}" target="_blank">{{name}}<a></li>
+  {{/each}}
+</ul>
+
+<p>
+  <a href="#" class='back btn pull-right'>Go back</a>
+</p>

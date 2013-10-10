@@ -49,7 +49,9 @@
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
       'getZendeskUser.done'            : 'handleZendeskUser',
-      'click .toggle-address'          : 'toggleAddress'
+      'click .toggle-address'          : 'toggleAddress',
+      'click .showMore'                : 'handleShowMore',
+      'click .back'                    : 'handleBack'
     },
 
     init: function(data){
@@ -98,14 +100,30 @@
       // test if change event fired before app.activated
     }, 500),
 
+    handleShowMore: function(event) {
+      event.preventDefault();
+      this.switchTo('hitsList', { hits: this.hitsList });
+    },
+
+    handleBack: function(event) {
+      event.preventDefault();
+      this.attemptCanvasRefresh();
+    },
+
     handleProfile: function(data) {
       if (data.errors) {
         this.showError(null, data.errors);
         return;
       }
-
       if (this.safeGetPath(data, 'response.hits.users.list.length') > 0)
       {
+        this.fullResponse = data.response.hits.users.list;
+        this.hitsList = _.map(this.fullResponse, function(user) {
+          return {
+            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@", user.name, user.account.name),
+            name: user.display_name
+          };
+        });
         var targetObj = data.response.hits.users.list[0];
         this.customer = {
           email: targetObj.name,
@@ -228,7 +246,8 @@
       if (this.customer.canvasHasUser && this.customer.canvasHasStream && this.customer.canvasHasAccount)
       {
         this.updateTemplate('customer', {
-          customer: this.customer
+          customer: this.customer,
+          moreHits: this.hitsList.length > 1
         });
       }
       else
