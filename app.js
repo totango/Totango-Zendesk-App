@@ -26,6 +26,9 @@
       'getProfile' : function(email) {
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users&src=zendeskApp', email));
       },
+      'searchAccounts': function(name) {
+        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
+      },
       'getUserData' : function(email,accountName) {
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@', accountName, email));
       },
@@ -45,11 +48,14 @@
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
+      'searchAccounts.done'            : 'handleSearchAccounts',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
       'getZendeskUser.done'            : 'handleZendeskUser',
-      'click .toggle-address'          : 'toggleAddress'
+      'click .toggle-address'          : 'toggleAddress',
+      'click .showMore'                : 'handleShowMore',
+      'click .back'                    : 'handleBack'
     },
 
     init: function(data){
@@ -98,14 +104,63 @@
       // test if change event fired before app.activated
     }, 500),
 
+    handleShowMore: function(event) {
+      event.preventDefault();
+      this.switchTo('hitsList', { hits: this.hitsList });
+    },
+
+    handleBack: function(event) {
+      event.preventDefault();
+      this.attemptCanvasRefresh();
+    },
+
+    handleSearchAccounts: function(data) {
+      if (data.errors) {
+        this.showError(null, data.errors);
+        return;
+      }
+      if (this.safeGetPath(data, 'response.hits.accounts.list.length') > 0) {
+        this.accountOnly = true;
+        var targetObj = data.response.hits.accounts.list[0];
+        this.hitsList = _.map(data.response.hits.accounts.list, function(account) {
+          return {
+            url: helpers.fmt("https://app.totango.com/#!/customerDetails?customer=%@", account.name),
+            name: account.display_name
+          };
+        });
+
+        this.customer = {
+          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
+            customer: targetObj.name
+          }),
+          accountName: targetObj.name,
+          accountDisplayName: targetObj.display_name
+        };
+        this.ajax('getAccountData',  targetObj.name);
+        var refreshWidget = setInterval(function(){
+          this.clearCanvasRefresh();
+          this.ajax('getAccountData',  targetObj.name);
+        }.bind(this), 120000);
+      }
+      else {
+        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
+      }
+    },
+
     handleProfile: function(data) {
       if (data.errors) {
         this.showError(null, data.errors);
         return;
       }
-
       if (this.safeGetPath(data, 'response.hits.users.list.length') > 0)
       {
+        this.accountOnly = false;
+        this.hitsList = _.map(data.response.hits.users.list, function(user) {
+          return {
+            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@", user.name, user.account.name),
+            name: user.display_name
+          };
+        });
         var targetObj = data.response.hits.users.list[0];
         this.customer = {
           email: targetObj.name,
@@ -139,6 +194,10 @@
         this.usingCustomfieldFallback = true;
         var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
         this.ajax('getProfile', this.ticket().customField(fieldKey));
+      }
+      else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
+        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        this.ajax('searchAccounts', this.ticket().customField(fieldKey));
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
@@ -225,10 +284,12 @@
     },
 
     attemptCanvasRefresh: function() {
-      if (this.customer.canvasHasUser && this.customer.canvasHasStream && this.customer.canvasHasAccount)
+      if (this.accountOnly && this.customer.canvasHasAccount || this.customer.canvasHasUser && this.customer.canvasHasStream && this.customer.canvasHasAccount)
       {
         this.updateTemplate('customer', {
-          customer: this.customer
+          accountOnly: this.accountOnly,
+          customer: this.customer,
+          moreHits: this.hitsList.length > 1
         });
       }
       else
