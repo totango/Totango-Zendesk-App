@@ -111,6 +111,12 @@
   <h5 class="totInsights">{{accountCreateDate}}</h5>
   <br clear="both">
 
+  {{#if contractRenewal}}
+  <h5>Contract Renewal</h5>
+  <h5 class="totInsights">{{contractRenewal}}</h5>
+  <br clear="both">
+  {{/if}}
+
 
 {{/with}}
 

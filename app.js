@@ -523,6 +523,11 @@
         {
           this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.value,'0,000');
         }
+        var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
+        if (tmpContractRenewal)
+        {
+          this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
+        }
 
 
         // Create Date
@@ -751,6 +756,11 @@
       return out;
     },
 
+    dateToStr  :function( dateToConvert )
+    {
+      var monthsShort= ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return ''+monthsShort[dateToConvert.getMonth()]+' '+dateToConvert.getDate()+', '+dateToConvert.getFullYear();
+    },
 
 
     localeDate: function(date) {
