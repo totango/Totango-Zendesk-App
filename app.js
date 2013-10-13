@@ -517,6 +517,14 @@
         // Usage frequency
         this.customer.accountUsageFrequency = tmpAccount.frequency.current;
 
+        // Attributes (Contract value, Renewal date)
+        var tmpContractValue = tmpAccount.attributes['Contract Value'];
+        if (tmpContractValue)
+        {
+          this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.value,'0,000');
+        }
+
+
         // Create Date
         var tmpCreateDate = new Date(tmpAccount.create_date);
         this.customer.accountCreateDate = this.timeago(tmpCreateDate.getTime());
@@ -657,6 +665,93 @@
 
         return tr;
     },
+
+
+
+    formatNumber: function(number, format)
+    {
+      if (format === null)
+        format = '0,000';
+      else if (typeof(format)!="string") {return '';} // sanity check
+
+      var hasComma = -1 < format.indexOf(',');
+      var psplit = this.stripNonNumeric(format).split('.');
+
+
+      number=Number(number);
+      // compute precision
+      if (1 < psplit.length) {
+        // fix number precision
+        number = number.toFixed(psplit[1].length);
+      }
+      // error: too many periods
+      else if (2 < psplit.length) {
+        throw('NumberFormatException: invalid format, formats should have no more than 1 period: ' + format);
+      }
+      // remove precision
+      else {
+        number = number.toFixed(0);
+      }
+
+      // get the string now that precision is correct
+      var fnum,minus='';
+      if (number>=0)
+      {    fnum = number.toString(); }
+      else
+      {
+          fnum = (number*(-1)).toString();
+          minus='-';
+      }
+      // format has comma, then compute commas
+      if (hasComma)
+      {
+        // remove precision for computation
+        psplit = fnum.split('.');
+
+        var cnum = psplit[0],
+          parr = [],
+          j = cnum.length,
+          m = Math.floor(j / 3),
+          n = cnum.length % 3 || 3; // n cannot be ZERO or causes infinite loop
+
+        // break the number into chunks of 3 digits; first chunk may be less than 3
+        for (var i = 0; i < j; i += n) {
+          if (i !== 0) {n = 3;}
+          parr[parr.length] = cnum.substr(i, n);
+          m -= 1;
+        }
+
+        // put chunks back together, separated by comma
+        fnum = parr.join(',');
+
+        // add the precision back in
+        if (psplit[1]) {fnum += '.' + psplit[1];}
+      }
+      fnum=minus+fnum;
+      // replace the number portion of the format with fnum
+      return format.replace(/[\d,?\.?]+/, fnum).replace(".00","");
+    },
+
+
+    //This function removes non-numeric characters
+    stripNonNumeric  :function( str )
+    {
+      str += '';
+      var rgx = /^\d|\.|-$/;
+      var out = '';
+      for( var i = 0; i < str.length; i++ )
+      {
+        if( rgx.test( str.charAt(i) ) ){
+          if( !( ( str.charAt(i) === '.' && out.indexOf( '.' ) !== -1 ) ||
+                 ( str.charAt(i) === '-' && out.length !== 0 ) ) ){
+            out += str.charAt(i);
+          }
+        }
+      }
+      return out;
+    },
+
+
 
     localeDate: function(date) {
       return new Date(date).toLocaleString(this.locale);

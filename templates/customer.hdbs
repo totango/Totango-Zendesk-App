@@ -89,6 +89,12 @@
   <h5 class="totInsights">{{accountLifecycle}} {{#if showStatus}}({{accountStatus}}){{/if}}</h5>
   <br clear="both">
 
+  {{#if contractValue}}
+  <h5>Contract Value</h5>
+  <h5 class="totInsights">{{contractValue}}</h5>
+  <br clear="both">
+  {{/if}}
+
   <h5>Account Health</h5>
   <h5 class="totInsights {{healthCSS}}">{{accountHealth}}</h5>
   <br clear="both">
