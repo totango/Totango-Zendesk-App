@@ -259,3 +259,25 @@ color: black;
 	font-size: 15px;
 	margin-bottom: -28px;
 }
+
+.totBanner {
+
+	display: inline-block;
+	width: 100px;
+	height: 34px;
+	background-image: app-asset-url("totango-logo-slim.png");
+	background-size: 100px;
+	background-repeat: no-repeat;
+	margin-top: 16px;
+
+    -webkit-transition: all 0.25s linear;
+       -moz-transition: all 0.25s linear;
+        -ms-transition: all 0.25s linear;
+         -o-transition: all 0.25s linear;
+            transition: all 0.25s linear;
+}
+
+.totBanner:hover {
+	-moz-opacity: 0.8;
+	opacity: 0.8;
+}

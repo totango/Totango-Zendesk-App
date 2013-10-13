@@ -136,4 +136,4 @@
     <a href="#" class='showMore'>{{t "customer.show_more"}}</a>
 {{/if}}
 
-<div class="totWebsite"><a href="http://www.totango.com" target="_blank">www.totango.com</a></div>
+<div class="totWebsite"><a href="http://www.totango.com" target="_blank"><div class="totBanner"></div></a></div>
