@@ -123,14 +123,15 @@
         var targetObj = data.response.hits.accounts.list[0];
         this.hitsList = _.map(data.response.hits.accounts.list, function(account) {
           return {
-            url: helpers.fmt("https://app.totango.com/#!/customerDetails?customer=%@", account.name),
+            url: helpers.fmt("https://app.totango.com/#!/customerDetails?customer=%@&src=zendeskApp", account.name),
             name: account.display_name
           };
         });
 
         this.customer = {
           accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.name
+            customer: targetObj.name,
+            src: 'zendeskApp'
           }),
           accountName: targetObj.name,
           accountDisplayName: targetObj.display_name
@@ -157,7 +158,7 @@
         this.accountOnly = false;
         this.hitsList = _.map(data.response.hits.users.list, function(user) {
           return {
-            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@", user.name, user.account.name),
+            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
             name: user.display_name
           };
         });
@@ -168,10 +169,12 @@
           avatar: this.getGravatarImgLink(targetObj.name, 80),
           uri: this.buildURI('https://app.totango.com/#!/userProfile', {
             user: targetObj.name,
-            customer: targetObj.account.name
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
           }),
           accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.account.name
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
           }),
           accountName: targetObj.account.name,
           accountDisplayName: targetObj.account.display_name
