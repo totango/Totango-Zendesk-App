@@ -48,6 +48,7 @@
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
+      'getProfile.fail'                : 'handleProfileFailed',
       'searchAccounts.done'            : 'handleSearchAccounts',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
@@ -118,6 +119,17 @@
         this.showError(null, data.errors);
         return;
       }
+      if (data.error && data.error.type && data.error.message) {
+        if (data.error.type == 'authentication_failed')
+        {
+          this.showError(null, 'Authentication with Totango has failed. Please check your API token.');
+        }
+        else
+        {
+          this.showError(null, data.error.message);
+        }
+        return;
+      }
       if (this.safeGetPath(data, 'response.hits.accounts.list.length') > 0) {
         this.accountOnly = true;
         var targetObj = data.response.hits.accounts.list[0];
@@ -137,15 +149,38 @@
           accountDisplayName: targetObj.display_name
         };
         this.ajax('getAccountData',  targetObj.name);
-        var refreshWidget = setInterval(function(){
-          this.clearCanvasRefresh();
-          this.ajax('getAccountData',  targetObj.name);
-        }.bind(this), 120000);
+        // Deprecated: Refresh Every 2 minutes to get online status.
+        // var refreshWidget = setInterval(function(){
+        //   this.clearCanvasRefresh();
+        //   this.ajax('getAccountData',  targetObj.name);
+        // }.bind(this), 120000);
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
       }
     },
+
+
+    handleProfileFailed : function(data) {
+      if (data.error && data.error.type && data.error.message) {
+        if (data.error.type == 'authentication_failed')
+        {
+          this.showError(null, 'Authentication with Totango has failed. Please check your API token in the App settings or contact support@totango.com');
+        }
+        else
+        {
+          this.showError(null, data.error.message+' Please contact support@totango.com');
+        }
+      }
+      else
+      {
+        this.showError(null, 'Ooops something went wrong. Please check your API token in the App settings or contact support@totango.com');
+      }
+      return;
+    },
+
+
+
 
     handleProfile: function(data) {
       var fieldKey;
@@ -530,6 +565,16 @@
         if (tmpContractRenewal)
         {
           this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
+        }
+        var tmpSuccessManager = tmpAccount.attributes['Success Manager'];
+        if (tmpSuccessManager)
+        {
+          this.customer.successManager = tmpSuccessManager.value;
+        }
+        var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
+        if (tmpSalesManager)
+        {
+          this.customer.salesManager = tmpSalesManager.value;
         }
 
 
