@@ -117,12 +117,6 @@
   <br clear="both">
   {{/if}}
 
-  {{#if contractRenewal}}
-  <h5>Contract Renewal</h5>
-  <h5 class="totInsights">{{contractRenewal}}</h5>
-  <br clear="both">
-  {{/if}}
-
   {{#if successManager}}
   <h5>Success Manager</h5>
   <h5 class="totInsights">{{successManager}}</h5>
