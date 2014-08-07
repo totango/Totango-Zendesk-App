@@ -8,15 +8,6 @@
     locale: undefined,
     usingCustomfieldFallback: false,
 
-    storeUrl: '',
-
-    resources: {
-      PROFILE_URI       : '/admin/customers/search.json?query=email:',
-      CUSTOMER_URI      : '%@/admin/customers/%@',
-      ORDERS_URI        : '%@/admin/orders.json?customer_id=%@&status=any',
-      ORDER_PATH        : '%@/admin/orders/%@'
-    },
-
     requests: {
       'getZendeskUser': {
         url: '/api/v2/users/me.json',
