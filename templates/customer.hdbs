@@ -117,6 +117,12 @@
   <br clear="both">
   {{/if}}
 
+  {{#if Licenses}}
+  <h5>Licenses</h5>
+  <h5 class="totInsights">{{Licenses}}</h5>
+  <br clear="both">
+  {{/if}}
+
   {{#if successManager}}
   <h5>Success Manager</h5>
   <h5 class="totInsights">{{successManager}}</h5>

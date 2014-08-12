@@ -4,7 +4,7 @@
     "email": "support@totango.com"
   },
 
-  "location": ["ticket_sidebar", "new_ticket_sidebar"],
+  "location": ["ticket_sidebar", "new_ticket_sidebar","user_sidebar"],
   "defaultLocale": "en",
   "private": false,
   "singleInstall": true,

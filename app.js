@@ -8,19 +8,9 @@
     locale: undefined,
     usingCustomfieldFallback: false,
 
-    storeUrl: '',
-
-    resources: {
-      PROFILE_URI       : '/admin/customers/search.json?query=email:',
-      CUSTOMER_URI      : '%@/admin/customers/%@',
-      ORDERS_URI        : '%@/admin/orders.json?customer_id=%@&status=any',
-      ORDER_PATH        : '%@/admin/orders/%@'
-    },
-
     requests: {
       'getZendeskUser': {
         url: '/api/v2/users/me.json',
-        proxy_v2: true
       },
 
       'getProfile' : function(email) {
@@ -30,21 +20,22 @@
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
       'getUserData' : function(email,accountName) {
-        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@', accountName, email));
+        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
-        return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@', tStartStream.toISOString(), accountName, email));
+        return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
-        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all', accountName));
+        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
       }
     },
 
     events: {
-      'app.activated'                  : 'init',
+      'app.created'                    : 'init',
       'ticket.requester.email.changed' : 'queryCustomer',
+      'user.email.changed'             : 'queryCustomer',
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
@@ -60,14 +51,10 @@
     },
 
     init: function(data){
-      if(!data.firstLoad){
-        return;
-      }
       _.defer(function() {
         this.ajax('getZendeskUser').done(function() {
-          // this.storeUrl = this.storeUrl || this.checkStoreUrl(this.settings.url);
 
-          if (this.ticket().requester()) {
+          if ((this.ticket && this.ticket().requester()) || (this.user && this.user().email()) ) {
             // user may have selected a requester and reloaded the app
             this.queryCustomer();
           }
@@ -77,7 +64,12 @@
 
     queryCustomer: function() {
       this.switchTo('requesting');
-      var email = this.ticket().requester().email();
+      var email;
+      if(this.ticket){
+        email = this.ticket().requester().email();
+      } else if(this.user){
+        email = this.user().email();
+      }
       if (this.setting('use_hashed_email')) {
         email = this.MD5(email).toString();
       }
@@ -220,12 +212,14 @@
         this.ajax('getUserData', targetObj.name, targetObj.account.name);
         this.ajax('getUserStream', targetObj.name, targetObj.account.name);
         this.ajax('getAccountData',  targetObj.account.name);
-        var refreshWidget = setInterval(function(){
-          this.clearCanvasRefresh();
-          this.ajax('getUserData', targetObj.name, targetObj.account.name);
-          this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-          this.ajax('getAccountData',  targetObj.account.name);
-        }.bind(this), 120000);
+
+        // DEPRECATED: refresh every 2 minutes...
+        // var refreshWidget = setInterval(function(){
+        //   this.clearCanvasRefresh();
+        //   this.ajax('getUserData', targetObj.name, targetObj.account.name);
+        //   this.ajax('getUserStream', targetObj.name, targetObj.account.name);
+        //   this.ajax('getAccountData',  targetObj.account.name);
+        // }.bind(this), 120000);
 
       }
       else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
@@ -506,7 +500,7 @@
       {
         var tmpAccount = data.account;
         // Status
-        this.customer.accountStatus = tmpAccount.status.current;
+        this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
         this.customer.accountLifecycle = tmpAccount.lifecycle.current;
         if (tmpAccount.status.current.toLowerCase() == tmpAccount.lifecycle.current.toLowerCase())
         {
@@ -553,7 +547,7 @@
         this.customer.accountEngagementTrend = Math.abs(tmpAccount.engagement.score.change);
 
         // Usage frequency
-        this.customer.accountUsageFrequency = tmpAccount.frequency.current;
+        this.customer.accountUsageFrequency = this.capitalize(tmpAccount.frequency.current);
 
         // Attributes (Contract value, Renewal date)
         var tmpContractValue = tmpAccount.attributes['Contract Value'];
@@ -575,6 +569,11 @@
         if (tmpSalesManager)
         {
           this.customer.salesManager = tmpSalesManager.value;
+        }
+        var tmpLicences = tmpAccount.attributes.Licenses;
+        if (tmpLicences)
+        {
+          this.customer.Licenses = this.formatNumber(tmpLicences.value,'0,000');
         }
 
 
@@ -810,6 +809,10 @@
       return ''+monthsShort[dateToConvert.getMonth()]+' '+dateToConvert.getDate()+', '+dateToConvert.getFullYear();
     },
 
+    capitalize: function(str) {
+      if (!str || str.length < 1) { return '';}
+      return str.charAt(0).toUpperCase() + str.substr(1);
+    },
 
     localeDate: function(date) {
       return new Date(date).toLocaleString(this.locale);
