@@ -569,6 +569,11 @@
         {
           this.customer.salesManager = tmpSalesManager.value;
         }
+        var tmpLicences = tmpAccount.attributes['Licenses'];
+        if (tmpLicences)
+        {
+          this.customer.Licenses = tmpLicences.value;
+        }
 
 
         // Create Date
