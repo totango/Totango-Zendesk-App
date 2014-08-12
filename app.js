@@ -35,6 +35,7 @@
     events: {
       'app.created'                    : 'init',
       'ticket.requester.email.changed' : 'queryCustomer',
+      'user.email.changed'             : 'queryCustomer',
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
@@ -53,7 +54,7 @@
       _.defer(function() {
         this.ajax('getZendeskUser').done(function() {
 
-          if (this.ticket().requester()) {
+          if ((this.ticket && this.ticket().requester()) || (this.user && this.user().email()) ) {
             // user may have selected a requester and reloaded the app
             this.queryCustomer();
           }
@@ -63,7 +64,12 @@
 
     queryCustomer: function() {
       this.switchTo('requesting');
-      var email = this.ticket().requester().email();
+      var email;
+      if(this.ticket){
+        email = this.ticket().requester().email();
+      } else if(this.user){
+        email = this.user().email();
+      }
       if (this.setting('use_hashed_email')) {
         email = this.MD5(email).toString();
       }
