@@ -50,12 +50,8 @@
     },
 
     init: function(data){
-      if(!data.firstLoad){
-        return;
-      }
       _.defer(function() {
         this.ajax('getZendeskUser').done(function() {
-          // this.storeUrl = this.storeUrl || this.checkStoreUrl(this.settings.url);
 
           if (this.ticket().requester()) {
             // user may have selected a requester and reloaded the app
@@ -498,7 +494,7 @@
       {
         var tmpAccount = data.account;
         // Status
-        this.customer.accountStatus = tmpAccount.status.current;
+        this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
         this.customer.accountLifecycle = tmpAccount.lifecycle.current;
         if (tmpAccount.status.current.toLowerCase() == tmpAccount.lifecycle.current.toLowerCase())
         {
