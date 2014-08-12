@@ -211,12 +211,14 @@
         this.ajax('getUserData', targetObj.name, targetObj.account.name);
         this.ajax('getUserStream', targetObj.name, targetObj.account.name);
         this.ajax('getAccountData',  targetObj.account.name);
-        var refreshWidget = setInterval(function(){
-          this.clearCanvasRefresh();
-          this.ajax('getUserData', targetObj.name, targetObj.account.name);
-          this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-          this.ajax('getAccountData',  targetObj.account.name);
-        }.bind(this), 120000);
+
+        // DEPRECATED: refresh every 2 minutes...
+        // var refreshWidget = setInterval(function(){
+        //   this.clearCanvasRefresh();
+        //   this.ajax('getUserData', targetObj.name, targetObj.account.name);
+        //   this.ajax('getUserStream', targetObj.name, targetObj.account.name);
+        //   this.ajax('getAccountData',  targetObj.account.name);
+        // }.bind(this), 120000);
 
       }
       else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
@@ -544,7 +546,7 @@
         this.customer.accountEngagementTrend = Math.abs(tmpAccount.engagement.score.change);
 
         // Usage frequency
-        this.customer.accountUsageFrequency = tmpAccount.frequency.current;
+        this.customer.accountUsageFrequency = this.capitalize(tmpAccount.frequency.current);
 
         // Attributes (Contract value, Renewal date)
         var tmpContractValue = tmpAccount.attributes['Contract Value'];
@@ -801,6 +803,10 @@
       return ''+monthsShort[dateToConvert.getMonth()]+' '+dateToConvert.getDate()+', '+dateToConvert.getFullYear();
     },
 
+    capitalize: function(str) {
+      if (!str || str.length < 1) { return '';}
+      return str.charAt(0).toUpperCase() + str.substr(1);
+    },
 
     localeDate: function(date) {
       return new Date(date).toLocaleString(this.locale);
