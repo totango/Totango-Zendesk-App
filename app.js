@@ -11,7 +11,6 @@
     requests: {
       'getZendeskUser': {
         url: '/api/v2/users/me.json',
-        proxy_v2: true
       },
 
       'getProfile' : function(email) {
@@ -21,15 +20,15 @@
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
       'getUserData' : function(email,accountName) {
-        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@', accountName, email));
+        return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
-        return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@', tStartStream.toISOString(), accountName, email));
+        return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
-        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all', accountName));
+        return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
       }
     },
 
@@ -569,10 +568,10 @@
         {
           this.customer.salesManager = tmpSalesManager.value;
         }
-        var tmpLicences = tmpAccount.attributes['Licenses'];
+        var tmpLicences = tmpAccount.attributes.Licenses;
         if (tmpLicences)
         {
-          this.customer.Licenses = tmpLicences.value;
+          this.customer.Licenses = this.formatNumber(tmpLicences.value,'0,000');
         }
 
 
