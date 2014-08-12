@@ -33,7 +33,7 @@
     },
 
     events: {
-      'app.activated'                  : 'init',
+      'app.created'                    : 'init',
       'ticket.requester.email.changed' : 'queryCustomer',
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
