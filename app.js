@@ -19,6 +19,12 @@
       'searchAccounts': function(name) {
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
+      'searchUsersAttributes': function(attribute,valueToSearch) {
+        var tmpObj;
+        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":"email","eq":"freestyle772@yahoo.com"}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
+        tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
+        return this.postRequest('/search/users', tmpObj);
+      },
       'getUserData' : function(email,accountName) {
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
@@ -41,6 +47,7 @@
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
       'searchAccounts.done'            : 'handleSearchAccounts',
+      'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
@@ -85,6 +92,19 @@
         url      : helpers.fmt("https://app.totango.com/api/v1%@", resource),
         method   : 'GET',
         dataType : 'json'
+      };
+    },
+
+    postRequest: function(resource,data) {
+      return {
+        headers  : {
+          // 'Authorization': this.settings.api_key
+          'app-token': this.settings.api_key
+        },
+        url      : helpers.fmt("https://app.totango.com/api/v1%@", resource),
+        method   : 'POST',
+        dataType : 'json',
+        data: data,
       };
     },
 
@@ -150,6 +170,11 @@
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
       }
+    },
+
+    handleSearchUsersAttributes : function(data){
+      console.log("DATA IS here");
+      console.log(data);
     },
 
 
@@ -230,6 +255,12 @@
       else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
         fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
         this.ajax('searchAccounts', this.ticket().customField(fieldKey));
+      }
+      else if (this.setting('fallback_totango_attribute')){
+        fieldKey = this.setting('fallback_totango_attribute');
+        console.log("WILL SEARCH BY ATTRIBUTE!! " + fieldKey);
+        // this.ajax('searchAccounts', this.ticket().customField(fieldKey));
+        this.ajax('searchUsersAttributes',2,3);
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");

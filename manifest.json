@@ -23,6 +23,11 @@
       "required": false
     },
     {
+      "name": "fallback_totango_attribute",
+      "type": "text",
+      "required": false
+    },
+    {
       "name": "use_hashed_email",
       "type": "checkbox",
       "required": false
