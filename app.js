@@ -20,8 +20,8 @@
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
       'searchUsersAttributes': function(attribute,valueToSearch) {
-        var tmpObj;
-        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":"email","eq":"freestyle772@yahoo.com"}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
+        var tmpObj = {};
+        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":attribute,"eq":valueToSearch}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
         return this.postRequest('/search/users', tmpObj);
       },
@@ -69,8 +69,7 @@
       }.bind(this));
     },
 
-    queryCustomer: function() {
-      this.switchTo('requesting');
+    getCustomerEmail : function(){
       var email;
       if(this.ticket){
         email = this.ticket().requester().email();
@@ -80,6 +79,12 @@
       if (this.setting('use_hashed_email')) {
         email = this.MD5(email).toString();
       }
+      return email;
+    },
+
+    queryCustomer: function() {
+      this.switchTo('requesting');
+      var email = this.getCustomerEmail();
       this.ajax('getProfile', email);
     },
 
@@ -258,9 +263,7 @@
       }
       else if (this.setting('fallback_totango_attribute')){
         fieldKey = this.setting('fallback_totango_attribute');
-        console.log("WILL SEARCH BY ATTRIBUTE!! " + fieldKey);
-        // this.ajax('searchAccounts', this.ticket().customField(fieldKey));
-        this.ajax('searchUsersAttributes',2,3);
+        this.ajax('searchUsersAttributes',fieldKey,this.getCustomerEmail());
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
