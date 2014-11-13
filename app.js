@@ -178,8 +178,18 @@
     },
 
     handleSearchUsersAttributes : function(data){
-      console.log("DATA IS here");
-      console.log(data);
+      if (data && data.status=== 'success' && this.safeGetPath(data, 'response.users.hits.length') > 0)
+      {
+        this.accountOnly = false;
+        this.hitsList = _.map(data.response.users.hits.length, function(user) {
+          return {
+            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
+            name: user.display_name
+          };
+        });
+        var targetObj = data.response.users.hits[0];
+        this.handleUserFromApi(targetObj);
+      }
     },
 
 
@@ -201,7 +211,34 @@
       return;
     },
 
+    handleUserFromApi: function(targetObj) {
+        var tmpEmail = targetObj.name;
+        if(this.setting('fallback_totango_attribute')){
+          tmpEmail = this.getCustomerEmail();
+        }
+        this.customer = {
+          email: tmpEmail,
+          isOnline: targetObj.is_online,
+          avatar: this.getGravatarImgLink(tmpEmail, 80),
+          uri: this.buildURI('https://app.totango.com/#!/userProfile', {
+            user: targetObj.name,
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
+          }),
+          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
+          }),
+          accountName: targetObj.account.name,
+          accountDisplayName: targetObj.account.display_name
+        };
+        
+        this.clearCanvasRefresh();
 
+        this.ajax('getUserData', targetObj.name, targetObj.account.name);
+        this.ajax('getUserStream', targetObj.name, targetObj.account.name);
+        this.ajax('getAccountData',  targetObj.account.name);
+    },
 
 
     handleProfile: function(data) {
@@ -220,28 +257,7 @@
           };
         });
         var targetObj = data.response.hits.users.list[0];
-        this.customer = {
-          email: targetObj.name,
-          isOnline: targetObj.is_online,
-          avatar: this.getGravatarImgLink(targetObj.name, 80),
-          uri: this.buildURI('https://app.totango.com/#!/userProfile', {
-            user: targetObj.name,
-            customer: targetObj.account.name,
-            src: 'zendeskApp'
-          }),
-          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.account.name,
-            src: 'zendeskApp'
-          }),
-          accountName: targetObj.account.name,
-          accountDisplayName: targetObj.account.display_name
-        };
-
-        this.clearCanvasRefresh();
-
-        this.ajax('getUserData', targetObj.name, targetObj.account.name);
-        this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-        this.ajax('getAccountData',  targetObj.account.name);
+        this.handleUserFromApi(targetObj);        
 
         // DEPRECATED: refresh every 2 minutes...
         // var refreshWidget = setInterval(function(){
