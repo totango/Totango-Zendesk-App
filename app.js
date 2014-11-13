@@ -85,7 +85,14 @@
     queryCustomer: function() {
       this.switchTo('requesting');
       var email = this.getCustomerEmail();
-      this.ajax('getProfile', email);
+      var fallBackTotAttribute = this.setting('fallback_totango_attribute');
+      if (fallBackTotAttribute){        
+        this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
+      }
+      else{
+        this.ajax('getProfile', email);
+      }
+      
     },
 
     getRequest: function(resource) {
@@ -189,6 +196,9 @@
         });
         var targetObj = data.response.users.hits[0];
         this.handleUserFromApi(targetObj);
+      }
+      else {
+        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
       }
     },
 
