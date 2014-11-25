@@ -35,6 +35,9 @@
       },
       'getAccountData' : function(accountName) {
         return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
+      },
+      'getServiceAttributes' : function() {
+        return this.getRequest('/attributes.json');
       }
     },
 
@@ -46,6 +49,8 @@
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
+      'getServiceAttributes.done'      : 'handleServiceAttributes',
+      'getServiceAttributes.fail'      : 'failedServiceAttributes',
       'searchAccounts.done'            : 'handleSearchAccounts',
       'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
@@ -84,6 +89,10 @@
 
     queryCustomer: function() {
       this.switchTo('requesting');
+      // Get attributes
+      this.ajax('getServiceAttributes');
+
+      // Get customer.
       var email = this.getCustomerEmail();
       var fallBackTotAttribute = this.setting('fallback_totango_attribute');
       if (fallBackTotAttribute){        
@@ -250,6 +259,30 @@
         this.ajax('getAccountData',  targetObj.account.name);
     },
 
+    handleServiceAttributes: function(data) {
+      var attributesMap = {};
+      var atts = data.list;
+      if(!atts || !atts.length) { return; }
+      var newObj = null;
+      for( var i = 0 ;i < atts.length; i++ ) {
+          newObj = null;
+          if( atts[i].type.toLowerCase() === 'tag' ) {
+              // No need for tag hadling
+          }
+          else {
+              newObj = atts[i];
+              if (newObj.key_name && newObj.key_name !== '' && newObj.key_name !== ' ')
+              {
+                  attributesMap[newObj.key_name] = newObj;
+              }
+          }
+      }
+      this.attributesMap = attributesMap;
+    },
+    failedServiceAttributes: function(data) {
+      this.attributesMap = {};
+      
+    },
 
     handleProfile: function(data) {
       var fieldKey;
@@ -552,6 +585,9 @@
     },
 
     handleAccountData: function(data) {
+      var attributeDisplayName= function(attribute){
+        return attributesMap[attribute].display_name || attribute;
+      };
       if (data.errors) {
         this.showError(this.I18n.t('global.error.orders'), data.errors);
         return;
@@ -559,6 +595,10 @@
       if (data.account)
       {
         var tmpAccount = data.account;
+        var attributesMap = this.attributesMap;
+
+        
+
         // Status
         this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
         this.customer.accountLifecycle = tmpAccount.lifecycle.current;
@@ -614,26 +654,31 @@
         if (tmpContractValue)
         {
           this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.value,'0,000');
+          this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
         }
         var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
         if (tmpContractRenewal)
         {
           this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
+          this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
         }
         var tmpSuccessManager = tmpAccount.attributes['Success Manager'];
         if (tmpSuccessManager)
         {
           this.customer.successManager = tmpSuccessManager.value;
+          this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
         }
         var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
         if (tmpSalesManager)
         {
           this.customer.salesManager = tmpSalesManager.value;
+          this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
         }
         var tmpLicences = tmpAccount.attributes.Licenses;
         if (tmpLicences)
         {
           this.customer.Licenses = this.formatNumber(tmpLicences.value,'0,000');
+          this.customer.LicensesDisplayName = attributeDisplayName('Licenses');
         }
 
 
