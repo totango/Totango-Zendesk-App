@@ -725,8 +725,8 @@
         {
           this.customer.successManager = tmpSuccessManager.value;
           this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
-          if(getUserEmail(this.customer.successManager)){
-            console.log(getUserEmail(this.customer.successManager));
+          if(getUserEmail(this.customer.successManager)){            
+            this.customer.successManagerEmail = getUserEmail(this.customer.successManager);
           }
         }
         var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
@@ -734,6 +734,9 @@
         {
           this.customer.salesManager = tmpSalesManager.value;
           this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
+          if(getUserEmail(this.customer.salesManager)){            
+            this.customer.salesManagerEmail = getUserEmail(this.customer.salesManager);
+          }
         }
         var tmpLicences = tmpAccount.attributes.Licenses;
         if (tmpLicences)
@@ -756,7 +759,7 @@
                   this.customer.extraAttributes.push(
                     {
                       displayName: attributeDisplayName(extraAttributesArr[i]),
-                      value: attributeValueDisplay(extraAttributesArr[i])
+                      value: attributeValueDisplay(extraAttributesArr[i])                      
                     }
                   );  
                 }

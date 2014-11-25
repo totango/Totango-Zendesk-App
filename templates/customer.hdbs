@@ -125,13 +125,25 @@
 
   {{#if successManager}}
   <h5>{{successManagerDisplayName}}</h5>
-  <h5 class="totInsights">{{successManager}}</h5>
+  <h5 class="totInsights">
+    {{#if successManagerEmail}}
+      <a href="mailto:{{successManagerEmail}}" target="_blank">{{successManager}} &#9993;</a>
+    {{else}}
+      {{successManager}}
+    {{/if}}
+  </h5>
   <br clear="both">
   {{/if}}
 
   {{#if salesManager}}
   <h5>{{salesManagerDisplayName}}</h5>
-  <h5 class="totInsights">{{salesManager}}</h5>
+  <h5 class="totInsights">
+    {{#if salesManagerEmail}}
+      <a href="mailto:{{salesManagerEmail}}" target="_blank">{{salesManager}} &#9993;</a>
+    {{else}}
+      {{salesManager}}
+    {{/if}}    
+  </h5>
   <br clear="both">
   {{/if}}
 
