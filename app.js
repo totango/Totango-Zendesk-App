@@ -38,7 +38,11 @@
       },
       'getServiceAttributes' : function() {
         return this.getRequest('/attributes.json');
+      },
+      'getServiceUsers' : function() {
+        return this.getRequest('/users/list.json');
       }
+
     },
 
     events: {
@@ -49,8 +53,8 @@
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
-      'getServiceAttributes.done'      : 'handleServiceAttributes',
-      'getServiceAttributes.fail'      : 'failedServiceAttributes',
+      'getServiceAttributes.done'      : 'handleServiceAttributes',      
+      'getServiceUsers.done'           : 'handleServiceUsers',            
       'searchAccounts.done'            : 'handleSearchAccounts',
       'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
@@ -89,8 +93,9 @@
 
     queryCustomer: function() {
       this.switchTo('requesting');
-      // Get attributes
-      this.ajax('getServiceAttributes');
+      
+      // Enrich attributes and users
+      this.initEnrichers();
 
       // Get customer.
       var email = this.getCustomerEmail();
@@ -102,6 +107,15 @@
         this.ajax('getProfile', email);
       }
       
+    },
+
+    initEnrichers: function() {
+      // Get attributes
+      this.attributesMap = {};
+      this.ajax('getServiceAttributes');
+
+      this.usersMap = {};
+      this.ajax('getServiceUsers');
     },
 
     getRequest: function(resource) {
@@ -279,10 +293,17 @@
       }
       this.attributesMap = attributesMap;
     },
-    failedServiceAttributes: function(data) {
-      this.attributesMap = {};
-      
+
+    handleServiceUsers: function(data) {
+      var usersMap = {};
+      var users = data.securedUserDetailsWrapperList;
+      if(!users || !users.length) { return; }
+      for( var i = 0 ;i < users.length; i++ ) {
+          usersMap[(users[i].firstName + ' ' + users[i].lastName).trim().replace(/ +(?= )/g,'')] = users[i].username;
+      }
+      this.usersMap = usersMap;
     },
+    
 
     handleProfile: function(data) {
       var fieldKey;
@@ -620,6 +641,9 @@
         }
         return '';
       };
+      var getUserEmail= function(user){
+        return usersMap[user];
+      };
       if (data.errors) {
         this.showError(this.I18n.t('global.error.orders'), data.errors);
         return;
@@ -629,6 +653,7 @@
         var that = this;
         var tmpAccount = data.account;
         var attributesMap = this.attributesMap;
+        var usersMap = this.usersMap;
 
         this.customer.extraAttributes = [];
 
@@ -700,6 +725,9 @@
         {
           this.customer.successManager = tmpSuccessManager.value;
           this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
+          if(getUserEmail(this.customer.successManager)){
+            console.log(getUserEmail(this.customer.successManager));
+          }
         }
         var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
         if (tmpSalesManager)
