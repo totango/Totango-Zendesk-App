@@ -135,7 +135,11 @@
   <br clear="both">
   {{/if}}
 
-
+  {{#extraAttributes}}
+    <h5>{{displayName}}</h5>
+    <h5 class="totInsights">{{value}}</h5>
+    <br clear="both">
+  {{/extraAttributes}}
 {{/with}}
 
 

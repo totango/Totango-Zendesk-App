@@ -28,6 +28,11 @@
       "required": false
     },
     {
+      "name": "extra_totango_attributes",
+      "type": "text",
+      "required": false
+    },
+    {
       "name": "use_hashed_email",
       "type": "checkbox",
       "required": false

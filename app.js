@@ -597,7 +597,7 @@
         var tmpAccount = data.account;
         var attributesMap = this.attributesMap;
 
-        
+        this.customer.extraAttributes = [];
 
         // Status
         this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
@@ -681,6 +681,31 @@
           this.customer.LicensesDisplayName = attributeDisplayName('Licenses');
         }
 
+        // Extra attributes
+        var extra_totango_attributes = this.setting('extra_totango_attributes');
+        var extraAttributesArr;
+        if(extra_totango_attributes)
+        {
+          try{
+              extraAttributesArr=JSON.parse(extra_totango_attributes);
+              // TODO: formatting.
+              for( var i = 0 ;i < extraAttributesArr.length; i++ ) {
+                if(tmpAccount.attributes[extraAttributesArr[i]])
+                {
+                  this.customer.extraAttributes.push(
+                    {
+                      displayName: attributeDisplayName(extraAttributesArr[i]),
+                      value: tmpAccount.attributes[extraAttributesArr[i]].value
+                    }
+                  );  
+                }
+              }
+          }catch(e){
+              alert("Error defining extra attributes array format");
+          }  
+        }
+        
+
 
         // Create Date
         var tmpCreateDate = new Date(tmpAccount.create_date);
@@ -733,6 +758,7 @@
         }
 
         this.customer.accountTags = tmpAccountTags;
+
 
         this.customer.canvasHasAccount = true;
         this.attemptCanvasRefresh();
