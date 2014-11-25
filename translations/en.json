@@ -8,6 +8,12 @@
       "fallback_custom_field": {
         "label": "Fallback Custom Field"
       },
+      "fallback_totango_attribute": {
+        "label": "Fallback Totango Attribute"
+      },
+      "extra_totango_attributes": {
+        "label": "Extra Totango Attributes"
+      },
       "use_hashed_email": {
         "label": "Perform queries using hashed emails"
       }

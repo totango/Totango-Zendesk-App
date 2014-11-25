@@ -90,7 +90,7 @@
   <br clear="both">
 
   {{#if contractValue}}
-  <h5>Contract Value</h5>
+  <h5>{{contractValueDisplayName}}</h5>
   <h5 class="totInsights">{{contractValue}}</h5>
   <br clear="both">
   {{/if}}
@@ -112,30 +112,46 @@
   <br clear="both">
 
   {{#if contractRenewal}}
-  <h5>Contract Renewal</h5>
+  <h5>{{contractRenewalDisplayName}}</h5>
   <h5 class="totInsights">{{contractRenewal}}</h5>
   <br clear="both">
   {{/if}}
 
   {{#if Licenses}}
-  <h5>Licenses</h5>
+  <h5>{{LicensesDisplayName}}</h5>
   <h5 class="totInsights">{{Licenses}}</h5>
   <br clear="both">
   {{/if}}
 
   {{#if successManager}}
-  <h5>Success Manager</h5>
-  <h5 class="totInsights">{{successManager}}</h5>
+  <h5>{{successManagerDisplayName}}</h5>
+  <h5 class="totInsights">
+    {{#if successManagerEmail}}
+      <a href="mailto:{{successManagerEmail}}" target="_blank">{{successManager}} &#9993;</a>
+    {{else}}
+      {{successManager}}
+    {{/if}}
+  </h5>
   <br clear="both">
   {{/if}}
 
   {{#if salesManager}}
-  <h5>Sales Manager</h5>
-  <h5 class="totInsights">{{salesManager}}</h5>
+  <h5>{{salesManagerDisplayName}}</h5>
+  <h5 class="totInsights">
+    {{#if salesManagerEmail}}
+      <a href="mailto:{{salesManagerEmail}}" target="_blank">{{salesManager}} &#9993;</a>
+    {{else}}
+      {{salesManager}}
+    {{/if}}    
+  </h5>
   <br clear="both">
   {{/if}}
 
-
+  {{#extraAttributes}}
+    <h5>{{displayName}}</h5>
+    <h5 class="totInsights">{{value}}</h5>
+    <br clear="both">
+  {{/extraAttributes}}
 {{/with}}
 
 

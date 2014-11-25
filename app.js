@@ -19,6 +19,12 @@
       'searchAccounts': function(name) {
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
+      'searchUsersAttributes': function(attribute,valueToSearch) {
+        var tmpObj = {};
+        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":attribute,"eq":valueToSearch}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
+        tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
+        return this.postRequest('/search/users', tmpObj);
+      },
       'getUserData' : function(email,accountName) {
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
@@ -29,7 +35,14 @@
       },
       'getAccountData' : function(accountName) {
         return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
+      },
+      'getServiceAttributes' : function() {
+        return this.getRequest('/attributes.json');
+      },
+      'getServiceUsers' : function() {
+        return this.getRequest('/users/list.json');
       }
+
     },
 
     events: {
@@ -40,7 +53,10 @@
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
+      'getServiceAttributes.done'      : 'handleServiceAttributes',      
+      'getServiceUsers.done'           : 'handleServiceUsers',            
       'searchAccounts.done'            : 'handleSearchAccounts',
+      'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
@@ -62,8 +78,7 @@
       }.bind(this));
     },
 
-    queryCustomer: function() {
-      this.switchTo('requesting');
+    getCustomerEmail : function(){
       var email;
       if(this.ticket){
         email = this.ticket().requester().email();
@@ -73,7 +88,34 @@
       if (this.setting('use_hashed_email')) {
         email = this.MD5(email).toString();
       }
-      this.ajax('getProfile', email);
+      return email;
+    },
+
+    queryCustomer: function() {
+      this.switchTo('requesting');
+      
+      // Enrich attributes and users
+      this.initEnrichers();
+
+      // Get customer.
+      var email = this.getCustomerEmail();
+      var fallBackTotAttribute = this.setting('fallback_totango_attribute');
+      if (fallBackTotAttribute){        
+        this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
+      }
+      else{
+        this.ajax('getProfile', email);
+      }
+      
+    },
+
+    initEnrichers: function() {
+      // Get attributes
+      this.attributesMap = {};
+      this.ajax('getServiceAttributes');
+
+      this.usersMap = {};
+      this.ajax('getServiceUsers');
     },
 
     getRequest: function(resource) {
@@ -85,6 +127,19 @@
         url      : helpers.fmt("https://app.totango.com/api/v1%@", resource),
         method   : 'GET',
         dataType : 'json'
+      };
+    },
+
+    postRequest: function(resource,data) {
+      return {
+        headers  : {
+          // 'Authorization': this.settings.api_key
+          'app-token': this.settings.api_key
+        },
+        url      : helpers.fmt("https://app.totango.com/api/v1%@", resource),
+        method   : 'POST',
+        dataType : 'json',
+        data: data,
       };
     },
 
@@ -152,6 +207,24 @@
       }
     },
 
+    handleSearchUsersAttributes : function(data){
+      if (data && data.status=== 'success' && this.safeGetPath(data, 'response.users.hits.length') > 0)
+      {
+        this.accountOnly = false;
+        this.hitsList = _.map(data.response.users.hits.length, function(user) {
+          return {
+            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
+            name: user.display_name
+          };
+        });
+        var targetObj = data.response.users.hits[0];
+        this.handleUserFromApi(targetObj);
+      }
+      else {
+        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
+      }
+    },
+
 
     handleProfileFailed : function(data) {
       if (data.error && data.error.type && data.error.message) {
@@ -171,8 +244,66 @@
       return;
     },
 
+    handleUserFromApi: function(targetObj) {
+        var tmpEmail = targetObj.name;
+        if(this.setting('fallback_totango_attribute')){
+          tmpEmail = this.getCustomerEmail();
+        }
+        this.customer = {
+          email: tmpEmail,
+          isOnline: targetObj.is_online,
+          avatar: this.getGravatarImgLink(tmpEmail, 80),
+          uri: this.buildURI('https://app.totango.com/#!/userProfile', {
+            user: targetObj.name,
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
+          }),
+          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
+            customer: targetObj.account.name,
+            src: 'zendeskApp'
+          }),
+          accountName: targetObj.account.name,
+          accountDisplayName: targetObj.account.display_name
+        };
+        
+        this.clearCanvasRefresh();
 
+        this.ajax('getUserData', targetObj.name, targetObj.account.name);
+        this.ajax('getUserStream', targetObj.name, targetObj.account.name);
+        this.ajax('getAccountData',  targetObj.account.name);
+    },
 
+    handleServiceAttributes: function(data) {
+      var attributesMap = {};
+      var atts = data.list;
+      if(!atts || !atts.length) { return; }
+      var newObj = null;
+      for( var i = 0 ;i < atts.length; i++ ) {
+          newObj = null;
+          if( atts[i].type.toLowerCase() === 'tag' ) {
+              // No need for tag hadling
+          }
+          else {
+              newObj = atts[i];
+              if (newObj.key_name && newObj.key_name !== '' && newObj.key_name !== ' ')
+              {
+                  attributesMap[newObj.key_name] = newObj;
+              }
+          }
+      }
+      this.attributesMap = attributesMap;
+    },
+
+    handleServiceUsers: function(data) {
+      var usersMap = {};
+      var users = data.securedUserDetailsWrapperList;
+      if(!users || !users.length) { return; }
+      for( var i = 0 ;i < users.length; i++ ) {
+          usersMap[(users[i].firstName + ' ' + users[i].lastName).trim().replace(/ +(?= )/g,'')] = users[i].username;
+      }
+      this.usersMap = usersMap;
+    },
+    
 
     handleProfile: function(data) {
       var fieldKey;
@@ -190,28 +321,7 @@
           };
         });
         var targetObj = data.response.hits.users.list[0];
-        this.customer = {
-          email: targetObj.name,
-          isOnline: targetObj.is_online,
-          avatar: this.getGravatarImgLink(targetObj.name, 80),
-          uri: this.buildURI('https://app.totango.com/#!/userProfile', {
-            user: targetObj.name,
-            customer: targetObj.account.name,
-            src: 'zendeskApp'
-          }),
-          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.account.name,
-            src: 'zendeskApp'
-          }),
-          accountName: targetObj.account.name,
-          accountDisplayName: targetObj.account.display_name
-        };
-
-        this.clearCanvasRefresh();
-
-        this.ajax('getUserData', targetObj.name, targetObj.account.name);
-        this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-        this.ajax('getAccountData',  targetObj.account.name);
+        this.handleUserFromApi(targetObj);        
 
         // DEPRECATED: refresh every 2 minutes...
         // var refreshWidget = setInterval(function(){
@@ -230,6 +340,10 @@
       else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
         fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
         this.ajax('searchAccounts', this.ticket().customField(fieldKey));
+      }
+      else if (this.setting('fallback_totango_attribute')){
+        fieldKey = this.setting('fallback_totango_attribute');
+        this.ajax('searchUsersAttributes',fieldKey,this.getCustomerEmail());
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
@@ -490,15 +604,59 @@
       }
       return flagReturn;
     },
-
+    isNumber: function(o) {
+        return typeof o === 'number' && isFinite(o);
+    },
     handleAccountData: function(data) {
+      var attributeDisplayName= function(attribute){
+        return attributesMap[attribute].display_name || attribute;
+      };
+      var attributeValueDisplay= function(attribute){
+        var attributeDefinition = attributesMap[attribute];
+        var attributeOnAccount = tmpAccount.attributes[attribute];
+
+        if(attributeOnAccount){
+          var attributeValue = attributeOnAccount.value;
+          if(attributeDefinition){
+            var attributeType = attributeDefinition.type.toLowerCase();
+            // Text
+            if(attributeType === 'text'){
+              return attributeValue;
+            }
+            // Date
+            if(attributeType === 'date'){
+              that.dateToStr(new Date (attributeValue));
+            }
+            // Numeric
+            if(attributeType === 'numeric'){
+              attributeValue = Number(attributeValue);
+              if (that.isNumber(attributeValue)){
+                if(attributeValue%1 === 0){
+                  return that.formatNumber(attributeValue,'0,000');
+                }
+              }             
+            }
+          }
+          return attributeValue;
+        }
+        return '';
+      };
+      var getUserEmail= function(user){
+        return usersMap[user];
+      };
       if (data.errors) {
         this.showError(this.I18n.t('global.error.orders'), data.errors);
         return;
       }
       if (data.account)
       {
+        var that = this;
         var tmpAccount = data.account;
+        var attributesMap = this.attributesMap;
+        var usersMap = this.usersMap;
+
+        this.customer.extraAttributes = [];
+
         // Status
         this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
         this.customer.accountLifecycle = tmpAccount.lifecycle.current;
@@ -554,27 +712,63 @@
         if (tmpContractValue)
         {
           this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.value,'0,000');
+          this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
         }
         var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
         if (tmpContractRenewal)
         {
           this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
+          this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
         }
         var tmpSuccessManager = tmpAccount.attributes['Success Manager'];
         if (tmpSuccessManager)
         {
           this.customer.successManager = tmpSuccessManager.value;
+          this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
+          if(getUserEmail(this.customer.successManager)){            
+            this.customer.successManagerEmail = getUserEmail(this.customer.successManager);
+          }
         }
         var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
         if (tmpSalesManager)
         {
           this.customer.salesManager = tmpSalesManager.value;
+          this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
+          if(getUserEmail(this.customer.salesManager)){            
+            this.customer.salesManagerEmail = getUserEmail(this.customer.salesManager);
+          }
         }
         var tmpLicences = tmpAccount.attributes.Licenses;
         if (tmpLicences)
         {
           this.customer.Licenses = this.formatNumber(tmpLicences.value,'0,000');
+          this.customer.LicensesDisplayName = attributeDisplayName('Licenses');
         }
+
+        // Extra attributes
+        var extra_totango_attributes = this.setting('extra_totango_attributes');
+        var extraAttributesArr;
+        if(extra_totango_attributes)
+        {
+          try{
+              extraAttributesArr=JSON.parse(extra_totango_attributes);
+              // TODO: formatting.
+              for( var i = 0 ;i < extraAttributesArr.length; i++ ) {
+                if(tmpAccount.attributes[extraAttributesArr[i]])
+                {
+                  this.customer.extraAttributes.push(
+                    {
+                      displayName: attributeDisplayName(extraAttributesArr[i]),
+                      value: attributeValueDisplay(extraAttributesArr[i])                      
+                    }
+                  );  
+                }
+              }
+          }catch(e){
+              alert("Error defining extra attributes array format");
+          }  
+        }
+        
 
 
         // Create Date
@@ -628,6 +822,7 @@
         }
 
         this.customer.accountTags = tmpAccountTags;
+
 
         this.customer.canvasHasAccount = true;
         this.attemptCanvasRefresh();

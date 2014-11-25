@@ -185,11 +185,12 @@ opacity: 0.8;
 .customer h5
 {
 	font-weight: 400;
-	width: 133px;
+	width: 146px;
 	display: inline-block;
 	float: left;
 	color: #8F8F8F;
 	margin-top: 4px;
+	margin-right: 5px;
 }
 
 .customer h5.totInsights {
