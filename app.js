@@ -101,6 +101,11 @@
       var email = this.getCustomerEmail();
       var fallBackTotAttribute = this.setting('fallback_totango_attribute');
       if (fallBackTotAttribute){
+        if (this.setting('fallback_custom_field')) {
+          // Use fallback field if needed.
+          var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+          email = this.ticket().customField(fieldKey);
+        }
         this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
       }
       else{
