@@ -297,7 +297,13 @@
           }
       }
       this.attributesMap = attributesMap;
+      this.hasAttibutesMetaData = true;
+
+      // Put the Attributes map into storage using Zendesk Api.
+      this.store('totangoAttributesMap',JSON.stringify(attributesMap));
+
     },
+
 
     handleServiceUsers: function(data) {
       var usersMap = {};
@@ -612,9 +618,25 @@
     isNumber: function(o) {
         return typeof o === 'number' && isFinite(o);
     },
+
+
+
+    getAttributesMap: function(){
+      if(this.hasAttibutesMetaData){
+        return this.attributesMap;
+      }
+      // Retrieve the object from Zendesk storage
+      var storedAttributes = this.store('totangoAttributesMap');
+      if(storedAttributes){
+        return JSON.parse(storedAttributes);
+      }
+      return null;
+    },
+
+
     handleAccountData: function(data) {
       var attributeDisplayName= function(attribute){
-        if(attributesMap[attribute] && attributesMap[attribute].display_name){
+        if(attributesMap && attributesMap[attribute] && attributesMap[attribute].display_name){
             return attributesMap[attribute].display_name;
         }
         return attribute;
@@ -660,7 +682,7 @@
       {
         var that = this;
         var tmpAccount = data.account;
-        var attributesMap = this.attributesMap;
+        var attributesMap = this.getAttributesMap();
         var usersMap = this.usersMap;
 
         this.customer.extraAttributes = [];
