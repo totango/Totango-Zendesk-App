@@ -53,8 +53,8 @@
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
-      'getServiceAttributes.done'      : 'handleServiceAttributes',      
-      'getServiceUsers.done'           : 'handleServiceUsers',            
+      'getServiceAttributes.done'      : 'handleServiceAttributes',
+      'getServiceUsers.done'           : 'handleServiceUsers',
       'searchAccounts.done'            : 'handleSearchAccounts',
       'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
@@ -93,20 +93,25 @@
 
     queryCustomer: function() {
       this.switchTo('requesting');
-      
+
       // Enrich attributes and users
       this.initEnrichers();
 
       // Get customer.
       var email = this.getCustomerEmail();
       var fallBackTotAttribute = this.setting('fallback_totango_attribute');
-      if (fallBackTotAttribute){        
+      if (fallBackTotAttribute){
+        if (this.setting('fallback_custom_field')) {
+          // Use fallback field if needed.
+          var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+          email = this.ticket().customField(fieldKey);
+        }
         this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
       }
       else{
         this.ajax('getProfile', email);
       }
-      
+
     },
 
     initEnrichers: function() {
@@ -265,7 +270,7 @@
           accountName: targetObj.account.name,
           accountDisplayName: targetObj.account.display_name
         };
-        
+
         this.clearCanvasRefresh();
 
         this.ajax('getUserData', targetObj.name, targetObj.account.name);
@@ -292,7 +297,13 @@
           }
       }
       this.attributesMap = attributesMap;
+      this.hasAttibutesMetaData = true;
+
+      // Put the Attributes map into storage using Zendesk Api.
+      this.store('totangoAttributesMap',JSON.stringify(attributesMap));
+
     },
+
 
     handleServiceUsers: function(data) {
       var usersMap = {};
@@ -303,7 +314,7 @@
       }
       this.usersMap = usersMap;
     },
-    
+
 
     handleProfile: function(data) {
       var fieldKey;
@@ -321,7 +332,7 @@
           };
         });
         var targetObj = data.response.hits.users.list[0];
-        this.handleUserFromApi(targetObj);        
+        this.handleUserFromApi(targetObj);
 
         // DEPRECATED: refresh every 2 minutes...
         // var refreshWidget = setInterval(function(){
@@ -607,9 +618,28 @@
     isNumber: function(o) {
         return typeof o === 'number' && isFinite(o);
     },
+
+
+
+    getAttributesMap: function(){
+      if(this.hasAttibutesMetaData){
+        return this.attributesMap;
+      }
+      // Retrieve the object from Zendesk storage
+      var storedAttributes = this.store('totangoAttributesMap');
+      if(storedAttributes){
+        return JSON.parse(storedAttributes);
+      }
+      return null;
+    },
+
+
     handleAccountData: function(data) {
       var attributeDisplayName= function(attribute){
-        return attributesMap[attribute].display_name || attribute;
+        if(attributesMap && attributesMap[attribute] && attributesMap[attribute].display_name){
+            return attributesMap[attribute].display_name;
+        }
+        return attribute;
       };
       var attributeValueDisplay= function(attribute){
         var attributeDefinition = attributesMap[attribute];
@@ -634,7 +664,7 @@
                 if(attributeValue%1 === 0){
                   return that.formatNumber(attributeValue,'0,000');
                 }
-              }             
+              }
             }
           }
           return attributeValue;
@@ -652,7 +682,7 @@
       {
         var that = this;
         var tmpAccount = data.account;
-        var attributesMap = this.attributesMap;
+        var attributesMap = this.getAttributesMap();
         var usersMap = this.usersMap;
 
         this.customer.extraAttributes = [];
@@ -725,7 +755,7 @@
         {
           this.customer.successManager = tmpSuccessManager.value;
           this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
-          if(getUserEmail(this.customer.successManager)){            
+          if(getUserEmail(this.customer.successManager)){
             this.customer.successManagerEmail = getUserEmail(this.customer.successManager);
           }
         }
@@ -734,7 +764,7 @@
         {
           this.customer.salesManager = tmpSalesManager.value;
           this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
-          if(getUserEmail(this.customer.salesManager)){            
+          if(getUserEmail(this.customer.salesManager)){
             this.customer.salesManagerEmail = getUserEmail(this.customer.salesManager);
           }
         }
@@ -759,16 +789,16 @@
                   this.customer.extraAttributes.push(
                     {
                       displayName: attributeDisplayName(extraAttributesArr[i]),
-                      value: attributeValueDisplay(extraAttributesArr[i])                      
+                      value: attributeValueDisplay(extraAttributesArr[i])
                     }
-                  );  
+                  );
                 }
               }
           }catch(e){
               alert("Error defining extra attributes array format");
-          }  
+          }
         }
-        
+
 
 
         // Create Date
