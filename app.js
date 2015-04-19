@@ -106,6 +106,9 @@
           var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
           email = this.ticket().customField(fieldKey);
         }
+        if (!email){
+          email = this.ticket().requester().name();
+        }
         this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
       }
       else{
