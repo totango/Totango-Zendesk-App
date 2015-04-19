@@ -703,7 +703,7 @@
         }
 
         // Health
-        var tmpHealth = tmpAccount.engagement.health.current;
+        var tmpHealth = this.safeGetPath(tmpAccount, 'engagement.health.current');
         if (tmpHealth == 'green')
         {
           this.customer.accountHealth = 'Good';
