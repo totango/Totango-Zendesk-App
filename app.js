@@ -14,7 +14,6 @@
       },
 
       'getProfile' : function(email) {
-        //return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users&src=zendeskApp', email));
         var tmpObj = {};
         tmpObj.query = JSON.stringify({"terms":[{"type":"string","term":"identifier","eq":email}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
@@ -263,6 +262,7 @@
         }
         this.customer = {
           email: tmpEmail,
+          displayName: targetObj.display_name,
           isOnline: targetObj.is_online,
           avatar: this.getGravatarImgLink(tmpEmail, 80),
           uri: this.buildURI('https://app.totango.com/#!/userProfile', {

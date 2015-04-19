@@ -6,7 +6,7 @@
           <img src="{{customer.avatar}}"/>
         </div>
         <div class="totUserLinks">
-          <h4 class="totHeaderLink"><a href="{{customer.uri}}" target="_blank">{{customer.email}} </a></h4>
+          <h4 class="totHeaderLink"><a href="{{customer.uri}}" target="_blank">{{customer.displayName}} </a><div class="totAccountId">({{customer.email}})</div></h4>
           <div class="totUserOnlineIndicator {{#if customer.isOnline}}totOnline{{/if}}"><div class="totOnlineCircle">&#x25cf;</div>{{#if customer.isOnline}}Online Now{{else}}Offline{{/if}}</div>
           <h4 class="totHeaderLink"><a href="{{customer.accountUri}}" target="_blank">{{customer.accountDisplayName}}</a> <div class="totAccountId">({{customer.accountName}})</div></h4>
         </div>
@@ -142,7 +142,7 @@
       <a href="mailto:{{salesManagerEmail}}" target="_blank">{{salesManager}} &#9993;</a>
     {{else}}
       {{salesManager}}
-    {{/if}}    
+    {{/if}}
   </h5>
   <br clear="both">
   {{/if}}
