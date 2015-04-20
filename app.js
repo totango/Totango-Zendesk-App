@@ -14,7 +14,10 @@
       },
 
       'getProfile' : function(email) {
-        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=users&src=zendeskApp', email));
+        var tmpObj = {};
+        tmpObj.query = JSON.stringify({"terms":[{"type":"string","term":"identifier","eq":email}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
+        tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
+        return this.postRequest('/search/users', tmpObj);
       },
       'searchAccounts': function(name) {
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
@@ -259,6 +262,7 @@
         }
         this.customer = {
           email: tmpEmail,
+          displayName: targetObj.display_name,
           isOnline: targetObj.is_online,
           avatar: this.getGravatarImgLink(tmpEmail, 80),
           uri: this.buildURI('https://app.totango.com/#!/userProfile', {
@@ -325,16 +329,16 @@
         this.showError(null, data.errors);
         return;
       }
-      if (this.safeGetPath(data, 'response.hits.users.list.length') > 0)
+      if (this.safeGetPath(data, 'response.users.hits.length') > 0)
       {
         this.accountOnly = false;
-        this.hitsList = _.map(data.response.hits.users.list, function(user) {
+        this.hitsList = _.map(data.response.users.hits, function(user) {
           return {
             url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
             name: user.display_name
           };
         });
-        var targetObj = data.response.hits.users.list[0];
+        var targetObj = data.response.users.hits[0];
         this.handleUserFromApi(targetObj);
 
         // DEPRECATED: refresh every 2 minutes...
@@ -703,7 +707,7 @@
         }
 
         // Health
-        var tmpHealth = tmpAccount.engagement.health.current;
+        var tmpHealth = this.safeGetPath(tmpAccount, 'engagement.health.current');
         if (tmpHealth == 'green')
         {
           this.customer.accountHealth = 'Good';
