@@ -86,17 +86,7 @@
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
         return this.postRequest('/search/users', tmpObj);
       },
-      'searchAccounts': function(name) {
-        console.info("REQUEST: searchAccount");
-        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
-      },
-      'searchUsersAttributes': function(attribute,valueToSearch) {
-        console.info("REQUEST: searchUsersAttribute");
-        var tmpObj = {};
-        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":attribute,"eq":valueToSearch}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
-        tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
-        return this.postRequest('/search/users', tmpObj);
-      },
+      
       'getUserData' : function(email,accountName) {
         console.info("REQUEST: getUserData");
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
@@ -134,8 +124,6 @@
       'locateUser.fail'                : 'handleProfileFailed',
       'getServiceAttributes.done'      : 'handleServiceAttributes',
       'getServiceUsers.done'           : 'handleServiceUsers',
-      'searchAccounts.done'            : 'handleSearchAccounts',
-      'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
@@ -245,71 +233,7 @@
       this.attemptCanvasRefresh();
     },
 
-    handleSearchAccounts: function(data) {
-      if (data.errors) {
-        this.showError(null, data.errors);
-        return;
-      }
-      if (data.error && data.error.type && data.error.message) {
-        if (data.error.type == 'authentication_failed')
-        {
-          this.showError(null, 'Authentication with Totango has failed. Please check your API token.');
-        }
-        else
-        {
-          this.showError(null, data.error.message);
-        }
-        return;
-      }
-      if (this.safeGetPath(data, 'response.hits.accounts.list.length') > 0) {
-        this.accountOnly = true;
-        var targetObj = data.response.hits.accounts.list[0];
-        this.hitsList = _.map(data.response.hits.accounts.list, function(account) {
-          return {
-            url: helpers.fmt("https://app.totango.com/#!/customerDetails?customer=%@&src=zendeskApp", account.name),
-            name: account.display_name
-          };
-        });
-
-        this.customer = {
-          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.name,
-            src: 'zendeskApp'
-          }),
-          accountName: targetObj.name,
-          accountDisplayName: targetObj.display_name
-        };
-        this.ajax('getAccountData',  targetObj.name);
-        // Deprecated: Refresh Every 2 minutes to get online status.
-        // var refreshWidget = setInterval(function(){
-        //   this.clearCanvasRefresh();
-        //   this.ajax('getAccountData',  targetObj.name);
-        // }.bind(this), 120000);
-      }
-      else {
-        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
-      }
-    },
-
-    handleSearchUsersAttributes : function(data){
-      if (data && data.status=== 'success' && this.safeGetPath(data, 'response.users.hits.length') > 0)
-      {
-        this.accountOnly = false;
-        this.hitsList = _.map(data.response.users.hits.length, function(user) {
-          return {
-            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
-            name: user.display_name
-          };
-        });
-        var targetObj = data.response.users.hits[0];
-        this.handleUserFromApi(targetObj);
-      }
-      else {
-        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
-      }
-    },
-
-
+    
     handleProfileFailed : function(data) {
       if (data.error && data.error.type && data.error.message) {
         if (data.error.type == 'authentication_failed')
@@ -330,9 +254,7 @@
 
     handleUserFromApi: function(targetObj) {
         var tmpEmail = targetObj.name;
-        if(this.setting('fallback_totango_attribute')){
-          tmpEmail = this.getCustomerEmail();
-        }
+        
         this.customer = {
           email: tmpEmail,
           displayName: targetObj.display_name,
