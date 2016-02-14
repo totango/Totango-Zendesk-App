@@ -15,16 +15,32 @@
 
       'locateUser' : function(config) {
         console.info("REQUEST: locateUser");
+        var tmpObj = {},terms = [{type:"or", or:[] }];
+        var orTerms = terms[0].or;
+        var query = {"terms":[],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"};
+        
         function isValidValue(str){
           return (typeof str === 'string' && str !== '0' & str!== 'null');
         }
 
-        // function addUserIdTerm(str){
-        //   orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email});
-        //   if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
-        //     orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email.toLowerCase() });
-        //   }
-        // }
+        function hasUpperCase(str){
+          return (str !== str.toLowerCase());
+        }        
+
+        function addUserIdTerm(userId){
+          orTerms.push({"type":"string","term":"identifier","eq":userId});
+          if( hasUpperCase( userId ) ) {
+            orTerms.push({"type":"string","term":"identifier","eq":userId.toLowerCase() });
+          }
+        }
+
+        function addCustomAttributeTerm(attribute, attributeValue){
+          orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue});
+            if( hasUpperCase( attributeValue ) ) {
+              orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue.toLowerCase()});
+            }
+        }
+
         /****************
         * Accepts:
         * config.zendesk_ticket_email => the Email of the person who opened the ticket on Zendesk.
@@ -32,41 +48,26 @@
         * 
         * config.totango_fallback_attribute => An attribute in the user profile on Totango
         *****************/
-        var tmpObj = {},terms = [{type:"or", or:[] }];
-        var orTerms = terms[0].or;
-        var query = {"terms":[],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"};
+        
         // var date_term = {"type":"date","term":"date","eq":0};
         
         // 1. zendesk_ticket_email <=> totango_user_id + (lowercase check)
         if( isValidValue(config.zendesk_ticket_email) ){
-          orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email});
-          if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
-            orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email.toLowerCase() });
-          }
-
+          addUserIdTerm(config.zendesk_ticket_email);
+          
           // 2. zendesk_ticket_email <=> totango_fallback_attribute + (lowercase check)
           if( isValidValue(config.totango_fallback_attribute) ){
-            orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_ticket_email});
-            if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
-              orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_ticket_email.toLowerCase()});
-            }
+            addCustomAttributeTerm(config.totango_fallback_attribute, config.zendesk_ticket_email);
           }
         }
 
         // 3. zendesk_fallback_field <=> totango_user_id + (lowercase check)
         if( isValidValue(config.zendesk_fallback_field) ){
-
-          orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_fallback_field});
-          if( config.zendesk_fallback_field !== config.zendesk_fallback_field.toLowerCase() ) {
-            orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_fallback_field.toLowerCase() });
-          }
-
+          addUserIdTerm(config.zendesk_fallback_field);
+          
           // 4. zendesk_fallback_field <=> totango_fallback_attribute + (lowercase check)
           if( isValidValue(config.totango_fallback_attribute) ){
-            orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_fallback_field});
-            if( config.zendesk_fallback_field !== config.zendesk_fallback_field.toLowerCase() ) {
-              orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_fallback_field.toLowerCase()});
-            }
+            addCustomAttributeTerm(config.totango_fallback_attribute, config.zendesk_fallback_field);
           }
         }
         // TODO: validate that there are orTerms.
