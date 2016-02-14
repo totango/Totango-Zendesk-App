@@ -18,6 +18,13 @@
         function isValidValue(str){
           return (typeof str === 'string' && str !== '0' & str!== 'null');
         }
+
+        // function addUserIdTerm(str){
+        //   orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email});
+        //   if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
+        //     orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email.toLowerCase() });
+        //   }
+        // }
         /****************
         * Accepts:
         * config.zendesk_ticket_email => the Email of the person who opened the ticket on Zendesk.
@@ -122,6 +129,8 @@
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
+      'locateUser.done'                : 'handleProfile',
+      'locateUser.fail'                : 'handleProfileFailed',
       'getServiceAttributes.done'      : 'handleServiceAttributes',
       'getServiceUsers.done'           : 'handleServiceUsers',
       'searchAccounts.done'            : 'handleSearchAccounts',
@@ -180,31 +189,6 @@
 
       this.ajax('locateUser' , config);
 
-
-
-      // var email = this.getCustomerEmail();
-      // var fallBackTotAttribute = this.setting('fallback_totango_attribute');
-      // if (fallBackTotAttribute){
-      // if (this.setting('fallback_custom_field')) {
-      //   // Use fallback field if needed.
-      //   var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-      //   config.zendesk_fallback_field = this.ticket().customField(fieldKey);
-
-      // }
-      // if (this.setting('fallback_custom_field')) {
-      //   // Use fallback field if needed.
-      //   var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-      //   config.zendesk_fallback_field = this.ticket().customField(fieldKey);
-
-      // }
-      //   if (!email){
-      //     email = this.ticket().requester().name();
-      //   }
-      //   this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
-      // }
-      // else{
-      //   this.ajax('getProfile', email);
-      // }
 
     },
 
@@ -429,27 +413,6 @@
         var targetObj = data.response.users.hits[0];
         this.handleUserFromApi(targetObj);
 
-        // DEPRECATED: refresh every 2 minutes...
-        // var refreshWidget = setInterval(function(){
-        //   this.clearCanvasRefresh();
-        //   this.ajax('getUserData', targetObj.name, targetObj.account.name);
-        //   this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-        //   this.ajax('getAccountData',  targetObj.account.name);
-        // }.bind(this), 120000);
-
-      }
-      else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
-        this.usingCustomfieldFallback = true;
-        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-        this.ajax('getProfile', this.ticket().customField(fieldKey));
-      }
-      else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
-        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-        this.ajax('searchAccounts', this.ticket().customField(fieldKey));
-      }
-      else if (this.setting('fallback_totango_attribute')){
-        fieldKey = this.setting('fallback_totango_attribute');
-        this.ajax('searchUsersAttributes',fieldKey,this.getCustomerEmail());
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
