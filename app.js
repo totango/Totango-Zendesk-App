@@ -13,36 +13,102 @@
         url: '/api/v2/users/me.json',
       },
 
+      'locateUser' : function(config) {
+        console.info("REQUEST: locateUser");
+        function isValidValue(str){
+          return (typeof str === 'string' && str !== '0' & str!== 'null');
+        }
+        /****************
+        * Accepts:
+        * config.zendesk_ticket_email => the Email of the person who opened the ticket on Zendesk.
+        * config.zendesk_fallback_field => the Value of a custom field in the ticket on Zendesk
+        * 
+        * config.totango_fallback_attribute => An attribute in the user profile on Totango
+        *****************/
+        var tmpObj = {},terms = [{type:"or", or:[] }];
+        var orTerms = terms[0].or;
+        var query = {"terms":[],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"};
+        // var date_term = {"type":"date","term":"date","eq":0};
+        
+        // 1. zendesk_ticket_email <=> totango_user_id + (lowercase check)
+        if( isValidValue(config.zendesk_ticket_email) ){
+          orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email});
+          if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
+            orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_ticket_email.toLowerCase() });
+          }
+
+          // 2. zendesk_ticket_email <=> totango_fallback_attribute + (lowercase check)
+          if( isValidValue(config.totango_fallback_attribute) ){
+            orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_ticket_email});
+            if( config.zendesk_ticket_email !== config.zendesk_ticket_email.toLowerCase() ) {
+              orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_ticket_email.toLowerCase()});
+            }
+          }
+        }
+
+        // 3. zendesk_fallback_field <=> totango_user_id + (lowercase check)
+        if( isValidValue(config.zendesk_fallback_field) ){
+
+          orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_fallback_field});
+          if( config.zendesk_fallback_field !== config.zendesk_fallback_field.toLowerCase() ) {
+            orTerms.push({"type":"string","term":"identifier","eq":config.zendesk_fallback_field.toLowerCase() });
+          }
+
+          // 4. zendesk_fallback_field <=> totango_fallback_attribute + (lowercase check)
+          if( isValidValue(config.totango_fallback_attribute) ){
+            orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_fallback_field});
+            if( config.zendesk_fallback_field !== config.zendesk_fallback_field.toLowerCase() ) {
+              orTerms.push({"type":"string_attribute","attribute":config.totango_fallback_attribute,"eq":config.zendesk_fallback_field.toLowerCase()});
+            }
+          }
+        }
+        // TODO: validate that there are orTerms.
+        
+        query.terms = terms;
+        tmpObj.query = JSON.stringify(query);
+        // tempObj.date_term = JSON.stringify(date_term);
+        return this.postRequest('/search/users', tmpObj);
+      },
+
+
       'getProfile' : function(email) {
+        console.info("REQUEST: getProfile");
         var tmpObj = {};
         tmpObj.query = JSON.stringify({"terms":[{"type":"string","term":"identifier","eq":email}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
         return this.postRequest('/search/users', tmpObj);
       },
       'searchAccounts': function(name) {
+        console.info("REQUEST: searchAccount");
         return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
       },
       'searchUsersAttributes': function(attribute,valueToSearch) {
+        console.info("REQUEST: searchUsersAttribute");
         var tmpObj = {};
         tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":attribute,"eq":valueToSearch}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
         return this.postRequest('/search/users', tmpObj);
       },
       'getUserData' : function(email,accountName) {
+        console.info("REQUEST: getUserData");
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
+        console.info("REQUEST: getUserStream");
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
         return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
+        console.info("REQUEST: getAccountData");
         return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
       },
       'getServiceAttributes' : function() {
+        console.info("REQUEST: getServiceAttributes");
         return this.getRequest('/attributes.json');
       },
       'getServiceUsers' : function() {
+        console.info("REQUEST: getServiceUsers");
         return this.getRequest('/users/list.json');
       }
 
@@ -95,28 +161,50 @@
     },
 
     queryCustomer: function() {
+      var config = {};
       this.switchTo('requesting');
 
       // Enrich attributes and users
       this.initEnrichers();
 
       // Get customer.
-      var email = this.getCustomerEmail();
-      var fallBackTotAttribute = this.setting('fallback_totango_attribute');
-      if (fallBackTotAttribute){
-        if (this.setting('fallback_custom_field')) {
-          // Use fallback field if needed.
-          var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-          email = this.ticket().customField(fieldKey);
-        }
-        if (!email){
-          email = this.ticket().requester().name();
-        }
-        this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
+      config.zendesk_ticket_email = this.getCustomerEmail();
+      config.totango_fallback_attribute = this.setting('fallback_totango_attribute');
+
+      if (this.setting('fallback_custom_field')) {
+        // Use fallback field if needed.
+        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        config.zendesk_fallback_field = this.ticket().customField(fieldKey);
+
       }
-      else{
-        this.ajax('getProfile', email);
-      }
+
+      this.ajax('locateUser' , config);
+
+
+
+      // var email = this.getCustomerEmail();
+      // var fallBackTotAttribute = this.setting('fallback_totango_attribute');
+      // if (fallBackTotAttribute){
+      // if (this.setting('fallback_custom_field')) {
+      //   // Use fallback field if needed.
+      //   var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+      //   config.zendesk_fallback_field = this.ticket().customField(fieldKey);
+
+      // }
+      // if (this.setting('fallback_custom_field')) {
+      //   // Use fallback field if needed.
+      //   var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+      //   config.zendesk_fallback_field = this.ticket().customField(fieldKey);
+
+      // }
+      //   if (!email){
+      //     email = this.ticket().requester().name();
+      //   }
+      //   this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
+      // }
+      // else{
+      //   this.ajax('getProfile', email);
+      // }
 
     },
 
