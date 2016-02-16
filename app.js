@@ -114,7 +114,6 @@
 
     events: {
       'app.created'                    : 'init',
-      'ticket.requester.email.changed' : 'queryCustomer',
       'user.email.changed'             : 'queryCustomer',
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
@@ -726,7 +725,7 @@
           this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
         }
         var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
-        if (tmpContractRenewal)
+        if (tmpContractRenewal && !_.isEmpty(tmpContractRenewal.value))
         {
           this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
           this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
