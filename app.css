@@ -256,7 +256,7 @@ color: black;
 .totWebsite {
 	display: block;
 	text-align: center;
-	padding-top: 30px;
+	padding: 30px 0px 10px 0px;
 	font-size: 15px;
 	margin-bottom: -28px;
 }
