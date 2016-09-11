@@ -13,36 +13,100 @@
         url: '/api/v2/users/me.json',
       },
 
+      'locateUser' : function(config) {
+        console.info("REQUEST: locateUser");
+        var tmpObj = {},terms = [{type:"or", or:[] }];
+        var orTerms = terms[0].or;
+        var query = {"terms":[],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"};
+        
+        function isValidValue(str){
+          return (typeof str === 'string' && str !== '0' & str!== 'null');
+        }
+
+        function hasUpperCase(str){
+          return (str !== str.toLowerCase());
+        }        
+
+        function addUserIdTerm(userId){
+          orTerms.push({"type":"string","term":"identifier","eq":userId});
+          if( hasUpperCase( userId ) ) {
+            orTerms.push({"type":"string","term":"identifier","eq":userId.toLowerCase() });
+          }
+        }
+
+        function addCustomAttributeTerm(attribute, attributeValue){
+          orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue});
+            if( hasUpperCase( attributeValue ) ) {
+              orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue.toLowerCase()});
+            }
+        }
+
+        /****************
+        * Accepts:
+        * config.zendesk_ticket_email => the Email of the person who opened the ticket on Zendesk.
+        * config.zendesk_fallback_field => the Value of a custom field in the ticket on Zendesk
+        * 
+        * config.totango_fallback_attribute => An attribute in the user profile on Totango
+        *****************/
+        
+        // var date_term = {"type":"date","term":"date","eq":0};
+        
+        // 1. zendesk_ticket_email <=> totango_user_id + (lowercase check)
+        if( isValidValue(config.zendesk_ticket_email) ){
+          addUserIdTerm(config.zendesk_ticket_email);
+          
+          // 2. zendesk_ticket_email <=> totango_fallback_attribute + (lowercase check)
+          if( isValidValue(config.totango_fallback_attribute) ){
+            addCustomAttributeTerm(config.totango_fallback_attribute, config.zendesk_ticket_email);
+          }
+        }
+
+        // 3. zendesk_fallback_field <=> totango_user_id + (lowercase check)
+        if( isValidValue(config.zendesk_fallback_field) ){
+          addUserIdTerm(config.zendesk_fallback_field);
+          
+          // 4. zendesk_fallback_field <=> totango_fallback_attribute + (lowercase check)
+          if( isValidValue(config.totango_fallback_attribute) ){
+            addCustomAttributeTerm(config.totango_fallback_attribute, config.zendesk_fallback_field);
+          }
+        }
+        // TODO: validate that there are orTerms.
+        
+        query.terms = terms;
+        tmpObj.query = JSON.stringify(query);
+        // tempObj.date_term = JSON.stringify(date_term);
+        return this.postRequest('/search/users', tmpObj);
+      },
+
+
       'getProfile' : function(email) {
+        console.info("REQUEST: getProfile");
         var tmpObj = {};
         tmpObj.query = JSON.stringify({"terms":[{"type":"string","term":"identifier","eq":email}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
         return this.postRequest('/search/users', tmpObj);
       },
-      'searchAccounts': function(name) {
-        return this.getRequest(helpers.fmt('/search/name.json?query=%@&get=accounts&src=zendeskApp', name));
-      },
-      'searchUsersAttributes': function(attribute,valueToSearch) {
-        var tmpObj = {};
-        tmpObj.query = JSON.stringify({"terms":[{"type":"string_attribute","attribute":attribute,"eq":valueToSearch}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
-        tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
-        return this.postRequest('/search/users', tmpObj);
-      },
+      
       'getUserData' : function(email,accountName) {
+        console.info("REQUEST: getUserData");
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
+        console.info("REQUEST: getUserStream");
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
         return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
+        console.info("REQUEST: getAccountData");
         return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
       },
       'getServiceAttributes' : function() {
+        console.info("REQUEST: getServiceAttributes");
         return this.getRequest('/attributes.json');
       },
       'getServiceUsers' : function() {
+        console.info("REQUEST: getServiceUsers");
         return this.getRequest('/users/list.json');
       }
 
@@ -50,16 +114,15 @@
 
     events: {
       'app.created'                    : 'init',
-      'ticket.requester.email.changed' : 'queryCustomer',
       'user.email.changed'             : 'queryCustomer',
       '*.changed'                      : 'handleChanged',
       'requiredProperties.ready'       : 'queryCustomer',
       'getProfile.done'                : 'handleProfile',
       'getProfile.fail'                : 'handleProfileFailed',
+      'locateUser.done'                : 'handleProfile',
+      'locateUser.fail'                : 'handleProfileFailed',
       'getServiceAttributes.done'      : 'handleServiceAttributes',
       'getServiceUsers.done'           : 'handleServiceUsers',
-      'searchAccounts.done'            : 'handleSearchAccounts',
-      'searchUsersAttributes.done'     : 'handleSearchUsersAttributes',
       'getUserData.done'               : 'handleUserData',
       'getUserStream.done'             : 'handleUserStream',
       'getAccountData.done'            : 'handleAccountData',
@@ -95,28 +158,25 @@
     },
 
     queryCustomer: function() {
+      var config = {};
       this.switchTo('requesting');
 
       // Enrich attributes and users
       this.initEnrichers();
 
       // Get customer.
-      var email = this.getCustomerEmail();
-      var fallBackTotAttribute = this.setting('fallback_totango_attribute');
-      if (fallBackTotAttribute){
-        if (this.setting('fallback_custom_field')) {
-          // Use fallback field if needed.
-          var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-          email = this.ticket().customField(fieldKey);
-        }
-        if (!email){
-          email = this.ticket().requester().name();
-        }
-        this.ajax('searchUsersAttributes',fallBackTotAttribute,email);
+      config.zendesk_ticket_email = this.getCustomerEmail();
+      config.totango_fallback_attribute = this.setting('fallback_totango_attribute');
+
+      if (this.setting('fallback_custom_field')) {
+        // Use fallback field if needed.
+        var fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
+        config.zendesk_fallback_field = this.ticket().customField(fieldKey);
+
       }
-      else{
-        this.ajax('getProfile', email);
-      }
+
+      this.ajax('locateUser' , config);
+
 
     },
 
@@ -172,71 +232,7 @@
       this.attemptCanvasRefresh();
     },
 
-    handleSearchAccounts: function(data) {
-      if (data.errors) {
-        this.showError(null, data.errors);
-        return;
-      }
-      if (data.error && data.error.type && data.error.message) {
-        if (data.error.type == 'authentication_failed')
-        {
-          this.showError(null, 'Authentication with Totango has failed. Please check your API token.');
-        }
-        else
-        {
-          this.showError(null, data.error.message);
-        }
-        return;
-      }
-      if (this.safeGetPath(data, 'response.hits.accounts.list.length') > 0) {
-        this.accountOnly = true;
-        var targetObj = data.response.hits.accounts.list[0];
-        this.hitsList = _.map(data.response.hits.accounts.list, function(account) {
-          return {
-            url: helpers.fmt("https://app.totango.com/#!/customerDetails?customer=%@&src=zendeskApp", account.name),
-            name: account.display_name
-          };
-        });
-
-        this.customer = {
-          accountUri: this.buildURI('https://app.totango.com/#!/customerDetails', {
-            customer: targetObj.name,
-            src: 'zendeskApp'
-          }),
-          accountName: targetObj.name,
-          accountDisplayName: targetObj.display_name
-        };
-        this.ajax('getAccountData',  targetObj.name);
-        // Deprecated: Refresh Every 2 minutes to get online status.
-        // var refreshWidget = setInterval(function(){
-        //   this.clearCanvasRefresh();
-        //   this.ajax('getAccountData',  targetObj.name);
-        // }.bind(this), 120000);
-      }
-      else {
-        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
-      }
-    },
-
-    handleSearchUsersAttributes : function(data){
-      if (data && data.status=== 'success' && this.safeGetPath(data, 'response.users.hits.length') > 0)
-      {
-        this.accountOnly = false;
-        this.hitsList = _.map(data.response.users.hits.length, function(user) {
-          return {
-            url: helpers.fmt("https://app.totango.com/#!/userProfile?user=%@&customer=%@&src=zendeskApp", user.name, user.account.name),
-            name: user.display_name
-          };
-        });
-        var targetObj = data.response.users.hits[0];
-        this.handleUserFromApi(targetObj);
-      }
-      else {
-        this.showError(this.I18n.t('global.error.customerNotFound'), " ");
-      }
-    },
-
-
+    
     handleProfileFailed : function(data) {
       if (data.error && data.error.type && data.error.message) {
         if (data.error.type == 'authentication_failed')
@@ -257,9 +253,7 @@
 
     handleUserFromApi: function(targetObj) {
         var tmpEmail = targetObj.name;
-        if(this.setting('fallback_totango_attribute')){
-          tmpEmail = this.getCustomerEmail();
-        }
+        
         this.customer = {
           email: tmpEmail,
           displayName: targetObj.display_name,
@@ -341,27 +335,6 @@
         var targetObj = data.response.users.hits[0];
         this.handleUserFromApi(targetObj);
 
-        // DEPRECATED: refresh every 2 minutes...
-        // var refreshWidget = setInterval(function(){
-        //   this.clearCanvasRefresh();
-        //   this.ajax('getUserData', targetObj.name, targetObj.account.name);
-        //   this.ajax('getUserStream', targetObj.name, targetObj.account.name);
-        //   this.ajax('getAccountData',  targetObj.account.name);
-        // }.bind(this), 120000);
-
-      }
-      else if (this.setting('fallback_custom_field') && !this.usingCustomfieldFallback) {
-        this.usingCustomfieldFallback = true;
-        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-        this.ajax('getProfile', this.ticket().customField(fieldKey));
-      }
-      else if (this.setting('fallback_custom_field') && this.usingCustomfieldFallback) {
-        fieldKey = helpers.fmt('custom_field_%@', this.setting('fallback_custom_field'));
-        this.ajax('searchAccounts', this.ticket().customField(fieldKey));
-      }
-      else if (this.setting('fallback_totango_attribute')){
-        fieldKey = this.setting('fallback_totango_attribute');
-        this.ajax('searchUsersAttributes',fieldKey,this.getCustomerEmail());
       }
       else {
         this.showError(this.I18n.t('global.error.customerNotFound'), " ");
@@ -752,7 +725,7 @@
           this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
         }
         var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
-        if (tmpContractRenewal)
+        if (tmpContractRenewal && !_.isEmpty(tmpContractRenewal.value))
         {
           this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
           this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
