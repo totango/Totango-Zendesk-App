@@ -252,7 +252,9 @@
 
     handleUserFromApi: function(targetObj) {
         var tmpEmail = targetObj.name;
-        
+        if(this.setting('fallback_totango_attribute')){
+          tmpEmail = this.getCustomerEmail();
+        }
         this.customer = {
           email: tmpEmail,
           displayName: targetObj.display_name,
