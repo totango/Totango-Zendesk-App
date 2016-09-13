@@ -1,7 +1,8 @@
 {
   "author": {
     "name": "Totango",
-    "email": "support@totango.com"
+    "email": "support@totango.com",
+    "url": "http://www.totango.com"
   },
 
   "location": ["ticket_sidebar", "new_ticket_sidebar","user_sidebar"],

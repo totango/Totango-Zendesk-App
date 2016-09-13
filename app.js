@@ -14,7 +14,6 @@
       },
 
       'locateUser' : function(config) {
-        console.info("REQUEST: locateUser");
         var tmpObj = {},terms = [{type:"or", or:[] }];
         var orTerms = terms[0].or;
         var query = {"terms":[],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"};
@@ -80,7 +79,6 @@
 
 
       'getProfile' : function(email) {
-        console.info("REQUEST: getProfile");
         var tmpObj = {};
         tmpObj.query = JSON.stringify({"terms":[{"type":"string","term":"identifier","eq":email}],"count":60,"offset":0,"fields":[],"sort_by":"display_name","sort_order":"ASC","scope":"all"});
         tmpObj.date_term = JSON.stringify({"type":"date","term":"date","eq":0});
@@ -88,25 +86,20 @@
       },
       
       'getUserData' : function(email,accountName) {
-        console.info("REQUEST: getUserData");
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
-        console.info("REQUEST: getUserStream");
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
         return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
       },
       'getAccountData' : function(accountName) {
-        console.info("REQUEST: getAccountData");
         return this.getRequest(helpers.fmt('/account.json?name=%@&return=all&src=zendeskApp', accountName));
       },
       'getServiceAttributes' : function() {
-        console.info("REQUEST: getServiceAttributes");
         return this.getRequest('/attributes.json');
       },
       'getServiceUsers' : function() {
-        console.info("REQUEST: getServiceUsers");
         return this.getRequest('/users/list.json');
       }
 
@@ -129,8 +122,14 @@
       'getZendeskUser.done'            : 'handleZendeskUser',
       'click .toggle-address'          : 'toggleAddress',
       'click .showMore'                : 'handleShowMore',
-      'click .back'                    : 'handleBack'
+      'click .back'                    : 'handleBack',
+      'click .totMoreLessButton'       : 'handleMoreLessClick',
     },
+
+    handleMoreLessClick: function(event){
+      event.target.parentNode.classList.toggle('totExpandBox');
+    },
+
 
     init: function(data){
       _.defer(function() {
@@ -253,7 +252,9 @@
 
     handleUserFromApi: function(targetObj) {
         var tmpEmail = targetObj.name;
-        
+        if(this.setting('fallback_totango_attribute')){
+          tmpEmail = this.getCustomerEmail();
+        }
         this.customer = {
           email: tmpEmail,
           displayName: targetObj.display_name,
@@ -391,7 +392,6 @@
               finalUserTags.push({
                 "tag" : "More...",
                 "cssClass" : 'totMoreLessButton totExpandButton ',
-                "onClick": "this.parentNode.className = '';"
               });
               hasExpand = true;
             }
@@ -404,7 +404,6 @@
           finalUserTags.push({
             "tag" : "Less...",
             "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-            "onClick": "this.parentNode.className = 'totExpandBox';"
           });
         }
         this.customer.tags =  finalUserTags;
@@ -428,10 +427,6 @@
           customer: this.customer,
           moreHits: this.hitsList.length > 1
         });
-      }
-      else
-      {
-        // console.log('still pending');
       }
     },
 
@@ -496,7 +491,6 @@
             finalUsageActions.push({
               "usage" : "More...",
               "cssClass" : 'totMoreLessButton totExpandButton ',
-              "onClick": "this.parentNode.className = '';"
             });
             hasExpand = true;
           }
@@ -510,7 +504,6 @@
         finalUsageActions.push({
           "usage" : "Less...",
           "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-          "onClick": "this.parentNode.className = 'totExpandBox';"
         });
       }
       this.customer.finalUsageActions = finalUsageActions;
@@ -546,7 +539,6 @@
             finalUsageModules.push({
               "usage" : "More...",
               "cssClass" : 'totMoreLessButton totExpandButton ',
-              "onClick": "this.parentNode.className = '';"
             });
             hasExpand = true;
           }
@@ -559,7 +551,6 @@
         finalUsageModules.push({
           "usage" : "Less...",
           "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-          "onClick": "this.parentNode.className = 'totExpandBox';"
         });
       }
       this.customer.finalUsageModules = finalUsageModules;
@@ -811,7 +802,6 @@
                     tmpAccountTags.push({
                       "tag" : "More...",
                       "cssClass" : 'totMoreLessButton totExpandButton ',
-                      "onClick": "this.parentNode.className = '';"
                     });
                     hasExpand = true;
                   }
@@ -827,7 +817,6 @@
           tmpAccountTags.push({
             "tag" : "Less...",
             "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-            "onClick": "this.parentNode.className = 'totExpandBox';"
           });
         }
 

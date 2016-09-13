@@ -25,7 +25,7 @@
       <h5 class="totLabeler">Tags:</h5>
       <div class="totExpandBox">
       {{#customer.tags}}
-        <div class="totLabel totTag {{cssClass}}" onclick="{{onClick}}">{{tag}}</div>
+        <div class="totLabel totTag {{cssClass}}">{{tag}}</div>
       {{/customer.tags}}
       </div>
       <br clear="both"/>
@@ -36,7 +36,7 @@
         <h5 class="totLabeler">Recent actions:</h5>
         <div class="totExpandBox">
         {{#customer.finalUsageActions}}
-          <div class="totLabel totCounter {{cssClass}}" onclick="{{onClick}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
+          <div class="totLabel totCounter {{cssClass}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
         {{/customer.finalUsageActions}}
         </div>
         <br clear="both"/>
@@ -46,7 +46,7 @@
         <h5 class="totLabeler">Recent Modules:</h5>
         <div class="totExpandBox">
         {{#customer.finalUsageModules}}
-          <div class="totLabel totCounter {{cssClass}}" onclick="{{onClick}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
+          <div class="totLabel totCounter {{cssClass}}">{{usage}} <div class="usageCounter">{{usage_count}}</div> </div>
         {{/customer.finalUsageModules}}
         </div>
         <br clear="both"/>
@@ -159,7 +159,7 @@
     <h5 class="totLabeler">Account Tags:</h5>
     <div class="totExpandBox">
     {{#customer.accountTags}}
-      <div class="totLabel totTag {{cssClass}}" onclick="{{onClick}}">{{tag}}</div>
+      <div class="totLabel totTag {{cssClass}}">{{tag}}</div>
     {{/customer.accountTags}}
     </div>
     <br clear="both"/>
