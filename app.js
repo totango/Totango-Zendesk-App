@@ -27,6 +27,7 @@
         }        
 
         function addUserIdTerm(userId){
+          userId = encodeURIComponent(userId);
           orTerms.push({"type":"string","term":"identifier","eq":userId});
           if( hasUpperCase( userId ) ) {
             orTerms.push({"type":"string","term":"identifier","eq":userId.toLowerCase() });
@@ -34,6 +35,7 @@
         }
 
         function addCustomAttributeTerm(attribute, attributeValue){
+          attributeValue = encodeURIComponent(attributeValue);
           orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue});
             if( hasUpperCase( attributeValue ) ) {
               orTerms.push({"type":"string_attribute","attribute":attribute,"eq":attributeValue.toLowerCase()});
@@ -86,9 +88,11 @@
       },
       
       'getUserData' : function(email,accountName) {
+        email = encodeURIComponent(email);
         return this.getRequest(helpers.fmt('/user/get.json?account=%@&name=%@&src=zendeskApp', accountName, email));
       },
       'getUserStream' : function(email,accountName) {
+        email = encodeURIComponent(email);
         var tNowStream = new Date();
         var tStartStream = new Date(tNowStream.getTime() - 1000*60*60*24*10);
         return this.getRequest(helpers.fmt('/realtime/stream.json?start=%@&account=%@&user=%@&src=zendeskApp', tStartStream.toISOString(), accountName, email));
