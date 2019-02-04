@@ -1,20 +1,25 @@
 $(function() {
 
   var client = ZAFClient.init();
-  client.invoke('resize', { width: '100%', height: '600px' });
 
   var handleShowMore = function(event) {
-    event.preventDefault();
-    this.switchTo('hitsList', { hits: this.hitsList });
+      event.preventDefault();
+      this.switchTo('hitsList', { hits: this.hitsList });
   };
 
   var handleBack = function(event) {
-    event.preventDefault();
-    this.attemptCanvasRefresh();
+      event.preventDefault();
+      this.attemptCanvasRefresh();
   };
 
   var handleMoreLessClick = function(event) {
       event.target.parentNode.classList.toggle('totExpandBox');
+      resize();
+  };
+
+  var resize = function() {
+    var height = $("#content").height();
+    client.invoke('resize', { width: '100%', height: height });
   };
 
   var obj = {
@@ -38,7 +43,8 @@ $(function() {
         $.ajax(templateUrl).done(function(data){
             var template = Handlebars.compile(data);
             var html_data = context ? template(context): template();
-            $("#content").empty().html(html_data);
+            $("#content").html(html_data);
+            resize();
             _.forEach(this.actions[template_name], this.addClickListener.bind(this));
         }.bind(this));
     },
