@@ -167,7 +167,7 @@
 
 
 {{#if moreHits}}
-    <a href="#" class='showMore'>{{t "customer.show_more"}}</a>
+    <a href="#" class='showMore'>Wrong user? Show more results.</a>
 {{/if}}
 
 <div class="totWebsite"><a href="http://www.totango.com" target="_blank"><div class="totBanner"></div></a></div>

@@ -6,12 +6,14 @@
     "email": "support@totango.com",
     "url": "http://www.totango.com"
   },
-  "frameworkVersion": "1.0",
-  "location": [
-    "ticket_sidebar",
-    "new_ticket_sidebar",
-    "user_sidebar"
-  ],
+  "frameworkVersion": "2.0",
+  "location": {
+    "support": {
+      "ticket_sidebar": "assets/iframe.html",
+      "new_ticket_sidebar": "assets/iframe.html",
+      "user_sidebar": "assets/iframe.html"
+    }
+  },
   "defaultLocale": "en",
   "private": false,
   "singleInstall": true,

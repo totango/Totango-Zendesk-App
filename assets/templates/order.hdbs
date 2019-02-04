@@ -1,30 +1,30 @@
 <hr/>
 
-<h4>{{t "order.ticket"}} ID <a href="{{uri}}" target="_blank">{{name}}</a></h4>
+<h4>Order details for ID <a href="{{uri}}" target="_blank">{{name}}</a></h4>
 
 {{#if cancelled_at}}
-  <h5 class="cancelled">{{t "order.cancelled"}}</h5>
-  <p>{{t "order.date"}} {{cancelled_at}}</p>
-  <p>{{t "order.cancel_reason"}} {{cancel_reason}}</p>
+  <h5 class="cancelled">This order was cancelled"</h5>
+  <p>Date:  {{cancelled_at}}</p>
+  <p>Cancel reason:  {{cancel_reason}}</p>
 {{/if}}
 
 {{#if closed_at}}
-  <h5 class="closed">{{t "order.closed"}}</h5>
-  <p>{{t "order.date"}} {{closed_at}}</p>
+  <h5 class="closed">This order was closed</h5>
+  <p>Date:  {{closed_at}}</p>
 {{/if}}
 
-<h5>{{t "order.payment_status"}}</h5>
+<h5>Payment Status</h5>
 <p><span class="badge o-{{financial_status}}">{{financial_status_locale}}</span></p>
 
-<h5>{{t "order.fulfillment_status"}}</h5>
+<h5>Fulfillment Status}</h5>
 <p><span class="badge o-{{fulfillment_status}}">{{fulfillment_status_locale}}</span></p>
 
-<h5>{{t "order.notes"}}</h5>
+<h5>Order Notes</h5>
 <p>{{note}}</p>
 
-<h5>{{t "order.addresses"}}</h5>
+<h5>Addresses</h5>
 
-<h6><a href="#" class="toggle-address">{{t "order.billing"}}</a></h6>
+<h6><a href="#" class="toggle-address">Billing</a></h6>
 <p class="hide">
   {{#with billing_address}}
     {{first_name}} {{last_name}}<br />
@@ -34,7 +34,7 @@
   {{/with}}
 </p>
 
-<h6><a href="#" class="toggle-address">{{t "order.shipping"}}</a></h6>
+<h6><a href="#" class="toggle-address">Shipping</a></h6>
 <p class="hide">
   {{#with shipping_address}}
     {{first_name}} {{last_name}}<br />
@@ -44,18 +44,18 @@
   {{/with}}
 </p>
 
-<h5>{{t "order.subtotal"}}</h5>
+<h5>Subtotal Price</h5>
 <p>{{subtotal_price}} {{currency_code}}</p>
 
 {{#if shipping_lines}}
-  <h5>{{t "order.shipping_lines"}}</h5>
+  <h5>Shipping</h5>
   {{#each shipping_lines}}}
     <p>{{price}} ({{code}})</p>
   {{/each}}
 {{/if}}
 
-<h5>{{t "order.total_price"}}</h5>
+<h5>Total Price</h5>
 <p>{{total_price}} {{currency_code}}</p>
 
-<h5>{{t "order.date_created"}}</h5>
+<h5>Date Created}</h5>
 <p>{{created_at}}</p>
