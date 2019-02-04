@@ -266,7 +266,7 @@ color: black;
 	display: inline-block;
 	width: 150px;
 	height: 34px;
-	background-image: app-asset-url("logo-horizontal-dark.png");
+	background-image: url("logo-horizontal-dark.png");
 	background-size: 150px;
 	background-repeat: no-repeat;
 
