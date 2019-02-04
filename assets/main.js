@@ -257,12 +257,12 @@ $(function() {
         });
     },
 
-    getCustomFiled: function() {
+    setCustomFiled: function() {
         var fieldKey = 'ticket.customField:' + this.settings.fallback_custom_field;
         return client.get(fieldKey)
             .then(function(result) {
-                return result[fieldKey]
-            });
+                this.customField = result[fieldKey]
+            }.bind(this));
     },
 
     setLocale: function() {
@@ -273,15 +273,13 @@ $(function() {
 
     init: function() {
         this.initMetadata().then(function() {
+            if (this.settings.fallback_custom_field) {
+                this.setCustomFiled();
+            }
             this.getUserEmail().then(function(email) {
                 this.userEmail = this.settings.use_hashed_email ? this.MD5(email).toString() : email;
-                this.getCustomFiled().then(function(customField) {
-                    if (this.settings.fallback_custom_field) {
-                        this.customField = customField;
-                    }
-                    this.setLocale().then(function() {
-                        this.queryCustomer();
-                    }.bind(this));
+                this.setLocale().then(function() {
+                    this.queryCustomer();
                 }.bind(this));
             }.bind(this));
         }.bind(this));
