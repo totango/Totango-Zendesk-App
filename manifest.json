@@ -17,11 +17,13 @@
   "defaultLocale": "en",
   "private": false,
   "singleInstall": true,
+  "domainWhitelist": ["app.totango.com"],
   "parameters": [
     {
       "name": "api_key",
       "type": "password",
-      "required": true
+      "required": true,
+      "secure": true
     },
     {
       "name": "fallback_custom_field",

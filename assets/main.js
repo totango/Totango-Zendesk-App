@@ -71,10 +71,11 @@ $(function() {
     getRequest: function(resource) {
       return {
         headers  : {
-          'app-token': this.settings.api_key
+          'app-token': "{{setting.api_key}}"
         },
         url      : "https://app.totango.com/api/v1/" + resource,
         method   : 'GET',
+        secure: true,
         dataType : 'json'
       };
     },
@@ -82,11 +83,11 @@ $(function() {
     postRequest: function(resource,data) {
       return {
         headers  : {
-          // 'Authorization': this.settings.api_key
-          'app-token': this.settings.api_key
+          'app-token': "{{setting.api_key}}"
         },
         url      : 'https://app.totango.com/api/v1/' + resource,
         method   : 'POST',
+        secure: true,
         dataType : 'json',
         data: data,
       };
