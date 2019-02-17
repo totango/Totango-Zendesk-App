@@ -1,9 +1,9 @@
 {
   "app": {
-    "name": "Totango",
-    "short_description": "Totango",
-    "long_description": "Displays user and account insights from Totango.",
-    "installation_instructions": "",
+    "name": "Totango Insights",
+    "short_description": "Displays user and account insights from Totango.",
+    "long_description": "Use the Totango widget to display user and accounts insights from Totango about the user and account related to the Zendesk issue you are viewing.",
+    "installation_instructions": "Follow the insructions in the following link to install this app: https://support.totango.com/hc/en-us/articles/204010915-Installing-the-Totango-Zendesk-App",
     "parameters": {
       "api_key": {
         "label": "Api Key"
