@@ -5,3 +5,10 @@ This is the [Totango App](http://www.zendesk.com/apps/totango) for New Zendesk. 
 <br/>
 Sceenshot of Totango Insights for Zendesk:<br/>
 ![Totango Insights for Zendesk](https://dl.dropboxusercontent.com/u/8381323/Totango%20Zendesk%20App%20RC1.png "Totango Insights for Zendesk")
+
+
+How to run locally
+===========
+If you need to debug the app locally, you need to use the [Zendesk zat tool](https://developer.zendesk.com/apps/docs/developer-guide/zat).
+
+Since the app uses secure settings, you need to run it again the insatlled app in the Totango Zendesk account. [See here](https://developer.zendesk.com/apps/docs/developer-guide/using_sdk#testing-an-app-with-secure-settings-locally) for details on how to do that.
