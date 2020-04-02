@@ -712,8 +712,8 @@ $(function() {
         }
 
         // Engagement
-        var currScore = _.get(tmpAccount.metrics.score.curr) || 0;
-        var prevScore = _.get(tmpAccount.metrics.score.prev) || 0;
+        var currScore = _.get(tmpAccount, 'metrics.score.curr') || 0;
+        var prevScore = _.get(tmpAccount, 'metrics.score.prev') || 0;
         var scoreChange = currScore - prevScore;
         this.customer.accountEngagement = currScore;
         this.customer.accountEngagementShowTrend = scoreChange !== 0;
