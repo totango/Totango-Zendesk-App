@@ -68,12 +68,12 @@ $(function() {
       this.getServiceUsers();
     },
 
-    getRequest: function(resource) {
+    getRequest: function(resource, version) {
       return {
         headers  : {
           'app-token': "{{setting.api_key}}"
         },
-        url      : "https://app.totango.com/api/v1/" + resource,
+        url      : "https://app.totango.com/api/" + (version || "v1") + "/" + resource,
         method   : 'GET',
         secure: true,
         dataType : 'json'
@@ -156,7 +156,7 @@ $(function() {
       },
 
     getAccountData: function(accountName) {
-        var options = this.getRequest('account.json?name=' + accountName + '&return=all&src=zendeskApp');
+        var options = this.getRequest('accounts/' + accountName + '/', 'v2');
         return client.request(options);
       },
 
@@ -636,7 +636,7 @@ $(function() {
         var attributeOnAccount = tmpAccount.attributes[attribute];
 
         if(attributeOnAccount){
-          var attributeValue = attributeOnAccount.value;
+          var attributeValue = attributeOnAccount.val;
           if(attributeDefinition){
             var attributeType = attributeDefinition.type.toLowerCase();
             // Text
@@ -678,9 +678,9 @@ $(function() {
         this.customer.extraAttributes = [];
 
         // Status
-        this.customer.accountStatus = this.capitalize(tmpAccount.status.current);
-        this.customer.accountLifecycle = tmpAccount.lifecycle.current;
-        if (tmpAccount.status.current.toLowerCase() == tmpAccount.lifecycle.current.toLowerCase())
+        this.customer.accountStatus = this.capitalize(tmpAccount.status_group);
+        this.customer.accountLifecycle = tmpAccount.status;
+        if (tmpAccount.status_group.toLowerCase() == tmpAccount.status.toLowerCase())
         {
           this.customer.showStatus = false;
         }
@@ -690,7 +690,7 @@ $(function() {
         }
 
         // Health
-        var tmpHealth = _.get(tmpAccount, 'engagement.health.current');
+        var tmpHealth = _.get(tmpAccount, 'health.curr');
         if (tmpHealth == 'green')
         {
           this.customer.accountHealth = 'Good';
@@ -712,9 +712,12 @@ $(function() {
         }
 
         // Engagement
-        this.customer.accountEngagement = tmpAccount.engagement.score.current;
-        this.customer.accountEngagementShowTrend = (tmpAccount.engagement.score.change !== 0);
-        if (tmpAccount.engagement.score.change > 0)
+        var currScore = _.get(tmpAccount, 'metrics.score.curr') || 0;
+        var prevScore = _.get(tmpAccount, 'metrics.score.prev') || 0;
+        var scoreChange = currScore - prevScore;
+        this.customer.accountEngagement = currScore;
+        this.customer.accountEngagementShowTrend = scoreChange !== 0;
+        if (scoreChange > 0)
         {
             this.customer.accountEngagementTrendUp = true;
         }
@@ -722,28 +725,28 @@ $(function() {
         {
             this.customer.accountEngagementTrendUp = false;
         }
-        this.customer.accountEngagementTrend = Math.abs(tmpAccount.engagement.score.change);
+        this.customer.accountEngagementTrend = Math.abs(scoreChange);
 
         // Usage frequency
-        this.customer.accountUsageFrequency = this.capitalize(tmpAccount.frequency.current);
+        this.customer.accountUsageFrequency = this.capitalize(tmpAccount.usage_frequency.curr);
 
         // Attributes (Contract value, Renewal date)
         var tmpContractValue = tmpAccount.attributes['Contract Value'];
         if (tmpContractValue)
         {
-          this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.value,'0,000');
+          this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.val,'0,000');
           this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
         }
         var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
-        if (tmpContractRenewal && !_.isEmpty(tmpContractRenewal.value))
+        if (tmpContractRenewal && !_.isEmpty(tmpContractRenewal.val))
         {
-          this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.value));
+          this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.val));
           this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
         }
         var tmpSuccessManager = tmpAccount.attributes['Success Manager'];
         if (tmpSuccessManager)
         {
-          this.customer.successManager = tmpSuccessManager.value;
+          this.customer.successManager = tmpSuccessManager.val;
           this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
           if(getUserEmail(this.customer.successManager)){
             this.customer.successManagerEmail = getUserEmail(this.customer.successManager);
@@ -752,7 +755,7 @@ $(function() {
         var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
         if (tmpSalesManager)
         {
-          this.customer.salesManager = tmpSalesManager.value;
+          this.customer.salesManager = tmpSalesManager.val;
           this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
           if(getUserEmail(this.customer.salesManager)){
             this.customer.salesManagerEmail = getUserEmail(this.customer.salesManager);
@@ -761,7 +764,7 @@ $(function() {
         var tmpLicences = tmpAccount.attributes.Licenses;
         if (tmpLicences)
         {
-          this.customer.Licenses = this.formatNumber(tmpLicences.value,'0,000');
+          this.customer.Licenses = this.formatNumber(tmpLicences.val,'0,000');
           this.customer.LicensesDisplayName = attributeDisplayName('Licenses');
         }
 
@@ -792,7 +795,8 @@ $(function() {
 
 
         // Create Date
-        var tmpCreateDate = new Date(tmpAccount.create_date);
+        var createDate = _.get(tmpAccount, ['attributes', 'Create Date', 'val']);
+        var tmpCreateDate = new Date(createDate);
         this.customer.accountCreateDate = this.timeago(tmpCreateDate.getTime());
 
         // Account tags
@@ -801,42 +805,31 @@ $(function() {
         var rowCharCount = 0;
         var hasExpand = false;
 
-        for (var prop in tmpAccount.attributes) {
-            if(tmpAccount.attributes.hasOwnProperty(prop))
-            {
-              totAttribute = tmpAccount.attributes[prop];
-              if (totAttribute.type==='Tag')
-              {
-                rowCharCount += 8;
-                rowCharCount += totAttribute.key.length;
-
-                var tmpTagObj = {
-                    "tag" : totAttribute.key,
-                    "cssClass" : 'totFirst'
-                };
-                if (rowCharCount > 62)
-                {
-                  if (!hasExpand)
-                  {
-                    tmpAccountTags.push({
-                      "tag" : "More...",
-                      "cssClass" : 'totMoreLessButton totExpandButton ',
-                    });
-                    hasExpand = true;
-                  }
-                  tmpTagObj.cssClass = 'totExpand';
-                }
-
-                tmpAccountTags.push(tmpTagObj);
-              }
+        _.forEach(tmpAccount.tags, function(tag) {
+          rowCharCount += 8;
+          rowCharCount += tag.length;
+          
+          var tmpTagObj = {
+            "tag" : tag,
+            "cssClass" : 'totFirst'
+          };
+          if (rowCharCount > 62) {
+            if (!hasExpand) {
+              tmpAccountTags.push({
+                "tag" : "More...",
+                "cssClass" : 'totMoreLessButton totExpandButton ',
+              });
+              hasExpand = true;
             }
-        }
-        if (hasExpand)
-        {
-          tmpAccountTags.push({
-            "tag" : "Less...",
-            "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-          });
+            tmpTagObj.cssClass = 'totExpand';
+          }
+          tmpAccountTags.push(tmpTagObj);
+        });
+        if (hasExpand) {
+            tmpAccountTags.push({
+              "tag" : "Less...",
+              "cssClass" : 'totExpand totMoreLessButton totExtractButton',
+            });
         }
 
         this.customer.accountTags = tmpAccountTags;
