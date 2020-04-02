@@ -795,7 +795,8 @@ $(function() {
 
 
         // Create Date
-        var tmpCreateDate = new Date(tmpAccount.created_at);
+        var createDate = _.get(tmpAccount, ['attributes', 'Create Date', 'val']);
+        var tmpCreateDate = new Date(createDate);
         this.customer.accountCreateDate = this.timeago(tmpCreateDate.getTime());
 
         // Account tags
