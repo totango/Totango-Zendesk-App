@@ -55,17 +55,7 @@
   </div>
 {{/unless}}
 
-
-
-
-
-
-
-
-
 {{#with customer}}
-
-
 
   {{#unless ../accountOnly}}
     <br/>
@@ -79,37 +69,46 @@
     {{/if}}
   </h4>
 
+  {{#attributes}}
+    {{#if isStatus}}
+      <h5>Status</h5>
+      <h5 class="totInsights">{{lifeCycle}} {{#if showStatus}}({{status}}){{/if}}</h5>
+    {{/if}}
 
+    {{#if isEngagementScore}}
+      <h5>Engagement Score</h5>
+      <h5 class="totInsights">
+        {{score}} <div class="totEngagementTrend">
+          {{#if showTrend}} <div class="totEngagementArrow">{{#if trendUp}}&#x25B2;{{else}}&#x25BC;{{/if}}</div>{{trend}}{{/if}}</div>
+      </h5>
+    {{/if}}
 
+    {{#if isHealth}}
+      <h5>Account Health</h5>
+      <h5 class="totInsights {{healthCSS}}">{{accountHealth}}</h5>
+    {{/if}}
 
+    {{#if isOwner}}
+      <h5>{{displayName}}</h5>
+      <h5 class="totInsights">
+        {{#if userEmail}}
+          <a href="mailto:{{userEmail}}" target="_blank">{{userName}} &#9993;</a>
+        {{else}}
+          {{userName}}
+        {{/if}}
+      </h5>
+    {{/if}}
 
+    {{#if isAttribute}}
+      <h5>{{displayName}}</h5>
+      <h5 class="totInsights">{{value}}</h5>
+    {{/if}}
+    <br clear="both">
+  {{/attributes}}
 
 {{! Account Stuff}}
-  <h5>Status</h5>
-  <h5 class="totInsights">{{accountLifecycle}} {{#if showStatus}}({{accountStatus}}){{/if}}</h5>
-  <br clear="both">
+{{!-- 
 
-  {{#if contractValue}}
-  <h5>{{contractValueDisplayName}}</h5>
-  <h5 class="totInsights">{{contractValue}}</h5>
-  <br clear="both">
-  {{/if}}
-
-  <h5>Account Health</h5>
-  <h5 class="totInsights {{healthCSS}}">{{accountHealth}}</h5>
-  <br clear="both">
-
-  <h5>Engagement Score</h5>
-  <h5 class="totInsights">{{accountEngagement}} <div class="totEngagementTrend">{{#if accountEngagementShowTrend}} <div class="totEngagementArrow">{{#if accountEngagementTrendUp}}&#x25B2;{{else}}&#x25BC;{{/if}}</div>{{accountEngagementTrend}}{{/if}}</div></h5>
-  <br clear="both">
-
-  <h5>Usage Fequency</h5>
-  <h5 class="totInsights">{{accountUsageFrequency}}</h5>
-  <br clear="both">
-
-  <h5>Account Created</h5>
-  <h5 class="totInsights">{{accountCreateDate}}</h5>
-  <br clear="both">
 
   {{#if contractRenewal}}
   <h5>{{contractRenewalDisplayName}}</h5>
@@ -122,36 +121,8 @@
   <h5 class="totInsights">{{Licenses}}</h5>
   <br clear="both">
   {{/if}}
-
-  {{#if successManager}}
-  <h5>{{successManagerDisplayName}}</h5>
-  <h5 class="totInsights">
-    {{#if successManagerEmail}}
-      <a href="mailto:{{successManagerEmail}}" target="_blank">{{successManager}} &#9993;</a>
-    {{else}}
-      {{successManager}}
-    {{/if}}
-  </h5>
-  <br clear="both">
-  {{/if}}
-
-  {{#if salesManager}}
-  <h5>{{salesManagerDisplayName}}</h5>
-  <h5 class="totInsights">
-    {{#if salesManagerEmail}}
-      <a href="mailto:{{salesManagerEmail}}" target="_blank">{{salesManager}} &#9993;</a>
-    {{else}}
-      {{salesManager}}
-    {{/if}}
-  </h5>
-  <br clear="both">
-  {{/if}}
-
-  {{#extraAttributes}}
-    <h5>{{displayName}}</h5>
-    <h5 class="totInsights">{{value}}</h5>
-    <br clear="both">
-  {{/extraAttributes}}
+--}}
+  
 {{/with}}
 
 

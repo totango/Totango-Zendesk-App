@@ -1,5 +1,5 @@
 {
-  "version": "1.1",
+  "version": "1.2",
   "name": "Totango Insights",
   "author": {
     "name": "Totango",
@@ -37,8 +37,20 @@
     },
     {
       "name": "extra_totango_attributes",
-      "type": "text",
+      "type": "hidden",
       "required": false
+    },
+    {
+      "name": "totango_attributes",
+      "type": "multiline",
+      "default": "status\nContract Value\nhealth\nEngagement Score\nUsage Frequency\nAccount Created\nContract Renewal Date\nLicenses\nSuccess Manager\nSales Manager",
+      "required": false
+    },
+    {
+      "name": "show_tags",
+      "type": "checkbox",
+      "required": false,
+      "default": true
     },
     {
       "name": "use_hashed_email",
