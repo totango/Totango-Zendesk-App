@@ -1,3 +1,192 @@
+var currencyMap = {
+  AED: 'د.إ',
+  AFN: '؋',
+  ALL: 'L',
+  AMD: '֏',
+  ANG: 'ƒ',
+  AOA: 'Kz',
+  ARS: '$',
+  AUD: '$',
+  AWG: 'ƒ',
+  AZN: '₼',
+  BAM: 'KM',
+  BBD: '$',
+  BDT: '৳',
+  BGN: 'лв',
+  BHD: '.د.ب',
+  BIF: 'FBu',
+  BMD: '$',
+  BND: '$',
+  BOB: '$b',
+  BOV: 'BOV',
+  BRL: 'R$',
+  BSD: '$',
+  BTC: '₿',
+  BTN: 'Nu.',
+  BWP: 'P',
+  BYN: 'Br',
+  BYR: 'Br',
+  BZD: 'BZ$',
+  CAD: '$',
+  CDF: 'FC',
+  CHE: 'CHE',
+  CHF: 'CHF',
+  CHW: 'CHW',
+  CLF: 'CLF',
+  CLP: '$',
+  CNY: '¥',
+  COP: '$',
+  COU: 'COU',
+  CRC: '₡',
+  CUC: '$',
+  CUP: '₱',
+  CVE: '$',
+  CZK: 'Kč',
+  DJF: 'Fdj',
+  DKK: 'kr',
+  DOP: 'RD$',
+  DZD: 'دج',
+  EEK: 'kr',
+  EGP: '£',
+  ERN: 'Nfk',
+  ETB: 'Br',
+  ETH: 'Ξ',
+  EUR: '€',
+  FJD: '$',
+  FKP: '£',
+  GBP: '£',
+  GEL: '₾',
+  GGP: '£',
+  GHC: '₵',
+  GHS: 'GH₵',
+  GIP: '£',
+  GMD: 'D',
+  GNF: 'FG',
+  GTQ: 'Q',
+  GYD: '$',
+  HKD: '$',
+  HNL: 'L',
+  HRK: 'kn',
+  HTG: 'G',
+  HUF: 'Ft',
+  IDR: 'Rp',
+  ILS: '₪',
+  IMP: '£',
+  INR: '₹',
+  IQD: 'ع.د',
+  IRR: '﷼',
+  ISK: 'kr',
+  JEP: '£',
+  JMD: 'J$',
+  JOD: 'JD',
+  JPY: '¥',
+  KES: 'KSh',
+  KGS: 'лв',
+  KHR: '៛',
+  KMF: 'CF',
+  KPW: '₩',
+  KRW: '₩',
+  KWD: 'KD',
+  KYD: '$',
+  KZT: '₸',
+  LAK: '₭',
+  LBP: '£',
+  LKR: '₨',
+  LRD: '$',
+  LSL: 'M',
+  LTC: 'Ł',
+  LTL: 'Lt',
+  LVL: 'Ls',
+  LYD: 'LD',
+  MAD: 'MAD',
+  MDL: 'lei',
+  MGA: 'Ar',
+  MKD: 'ден',
+  MMK: 'K',
+  MNT: '₮',
+  MOP: 'MOP$',
+  MRO: 'UM',
+  MRU: 'UM',
+  MUR: '₨',
+  MVR: 'Rf',
+  MWK: 'MK',
+  MXN: '$',
+  MXV: 'MXV',
+  MYR: 'RM',
+  MZN: 'MT',
+  NAD: '$',
+  NGN: '₦',
+  NIO: 'C$',
+  NOK: 'kr',
+  NPR: '₨',
+  NZD: '$',
+  OMR: '﷼',
+  PAB: 'B/.',
+  PEN: 'S/.',
+  PGK: 'K',
+  PHP: '₱',
+  PKR: '₨',
+  PLN: 'zł',
+  PYG: 'Gs',
+  QAR: '﷼',
+  RMB: '￥',
+  RON: 'lei',
+  RSD: 'Дин.',
+  RUB: '₽',
+  RWF: 'R₣',
+  SAR: '﷼',
+  SBD: '$',
+  SCR: '₨',
+  SDG: 'ج.س.',
+  SEK: 'kr',
+  SGD: 'S$',
+  SHP: '£',
+  SLL: 'Le',
+  SOS: 'S',
+  SRD: '$',
+  SSP: '£',
+  STD: 'Db',
+  STN: 'Db',
+  SVC: '$',
+  SYP: '£',
+  SZL: 'E',
+  THB: '฿',
+  TJS: 'SM',
+  TMT: 'T',
+  TND: 'د.ت',
+  TOP: 'T$',
+  TRL: '₤',
+  TRY: '₺',
+  TTD: 'TT$',
+  TVD: '$',
+  TWD: 'NT$',
+  TZS: 'TSh',
+  UAH: '₴',
+  UGX: 'USh',
+  USD: '$',
+  UYI: 'UYI',
+  UYU: '$U',
+  UYW: 'UYW',
+  UZS: 'лв',
+  VEF: 'Bs',
+  VES: 'Bs.S',
+  VND: '₫',
+  VUV: 'VT',
+  WST: 'WS$',
+  XAF: 'FCFA',
+  XBT: 'Ƀ',
+  XCD: '$',
+  XOF: 'CFA',
+  XPF: '₣',
+  XSU: 'Sucre',
+  XUA: 'XUA',
+  YER: '﷼',
+  ZAR: 'R',
+  ZMW: 'ZK',
+  ZWD: 'Z$',
+  ZWL: '$'
+};
+
 $(function() {
 
   var client = ZAFClient.init();
@@ -51,21 +240,13 @@ $(function() {
 
     getServiceAttributes: function() {
         var options = this.getRequest('attributes.json');
-        client.request(options).then(this.handleServiceAttributes.bind(this));
-    },
-
-    getServiceUsers: function() {
-        var options = this.getRequest('users/list.json');
-        client.request(options).then(this.handleServiceUsers.bind(this));
+        return client.request(options).then(this.handleServiceAttributes.bind(this));
     },
 
     initEnrichers: function() {
       // Get attributes
       this.attributesMap = {};
-      this.getServiceAttributes();
-
-      this.usersMap = {};
-      this.getServiceUsers();
+      return this.getServiceAttributes();
     },
 
     getRequest: function(resource, version) {
@@ -179,23 +360,8 @@ $(function() {
           }
       }
       this.attributesMap = attributesMap;
-      this.hasAttibutesMetaData = true;
 
-      // Put the Attributes map into storage using Zendesk Api.
-      this.totangoAttributesMap = attributesMap;
     },
-
-
-    handleServiceUsers: function(data) {
-      var usersMap = {};
-      var users = data.securedUserDetailsWrapperList;
-      if(!users || !users.length) { return; }
-      for( var i = 0 ;i < users.length; i++ ) {
-          usersMap[(users[i].firstName + ' ' + users[i].lastName).trim().replace(/ +(?= )/g,'')] = users[i].username;
-      }
-      this.usersMap = usersMap;
-    },
-
 
     handleProfile: function(data) {
       if (data.errors) {
@@ -297,20 +463,20 @@ $(function() {
         this.switchTo('requesting');
   
         // Enrich attributes and users
-        this.initEnrichers();
-  
-        // Get customer.
-        config.zendesk_ticket_email = this.userEmail;
-        config.totango_fallback_attribute = this.settings.fallback_totango_attribute;
-  
-        if (this.settings.fallback_custom_field) {
-          // Use fallback field if needed.
-          config.zendesk_fallback_field = this.customField;
-        }
+        this.initEnrichers().then(() => {
+          // Get customer.
+          config.zendesk_ticket_email = this.userEmail;
+          config.totango_fallback_attribute = this.settings.fallback_totango_attribute;
+      
+          if (this.settings.fallback_custom_field) {
+            // Use fallback field if needed.
+            config.zendesk_fallback_field = this.customField;
+          }
 
-        this.locateUser(config)
-            .then(this.handleProfile.bind(this))
-            .catch(this.handleProfileFailed.bind(this));
+          this.locateUser(config)
+              .then(this.handleProfile.bind(this))
+              .catch(this.handleProfileFailed.bind(this));
+          });
     },
 
     locateUser : function(config) {
@@ -615,233 +781,203 @@ $(function() {
         return typeof o === 'number' && isFinite(o);
     },
 
-    getAttributesMap: function(){
-      if(this.hasAttibutesMetaData){
-        return this.attributesMap;
-      }
-      // Retrieve the object from Zendesk storage
-      return this.totangoAttributesMap;
-    },
+    attributeValueDisplay: function(attributeKey, attributeOnAccount){
+      var attributesMap = this.attributesMap;
+      var attributeDefinition = attributesMap[attributeKey];
 
-
-    handleAccountData: function(data) {
-      var attributeDisplayName= function(attribute){
-        if(attributesMap && attributesMap[attribute] && attributesMap[attribute].display_name){
-            return attributesMap[attribute].display_name;
-        }
-        return attribute;
-      };
-      var attributeValueDisplay= function(attribute){
-        var attributeDefinition = attributesMap[attribute];
-        var attributeOnAccount = tmpAccount.attributes[attribute];
-
-        if(attributeOnAccount){
-          var attributeValue = attributeOnAccount.val;
-          if(attributeDefinition){
-            var attributeType = attributeDefinition.type.toLowerCase();
-            // Text
-            if(attributeType === 'text'){
+      if(attributeOnAccount){
+        var attributeValue = attributeOnAccount.val;
+        if(attributeDefinition) {
+          switch (attributeDefinition.type.toLowerCase()) {
+            case 'text':
               return attributeValue;
+            case 'date':
+              return this.dateToStr(new Date (attributeValue));
+            case 'currency': {
+              var currency = _.get(this.attributesMap, [attributeKey, "formatSettings", "sign"]);
+              var sign = currencyMap[currency] || "$";
+              return `${sign}${this.formatNumber(attributeValue,'0,000')}`;
             }
-            // Date
-            if(attributeType === 'date'){
-              that.dateToStr(new Date (attributeValue));
-            }
-            // Numeric
-            if(attributeType === 'numeric'){
-              attributeValue = Number(attributeValue);
-              if (that.isNumber(attributeValue)){
-                if(attributeValue%1 === 0){
-                  return that.formatNumber(attributeValue,'0,000');
+            case 'numeric': {
+              var numberValue = Number(attributeValue);
+              if (this.isNumber(numberValue)){
+                if(numberValue%1 === 0){
+                  return this.formatNumber(numberValue,'0,000');
                 }
               }
             }
+            default:
+              return attributeValue;
           }
-          return attributeValue;
         }
-        return '';
+      }
+      return '';
+    },
+
+    addOwnerAttribute: function(accountData, attributeKey) {
+      var owner = accountData.attributes[attributeKey];
+      var ownerEmail = accountData.attributes[`${attributeKey}___tid`];
+      if (owner) {
+        return {
+          isOwner: true,
+          displayName: owner.display_name,
+          userName: owner.val,
+          userEmail: ownerEmail && ownerEmail.val,
+        };
+      }
+    },
+
+    buildAttributeObject: function(name, value) {
+      return {
+        isAttribute: true,
+        displayName: name,
+        value: value
       };
-      var getUserEmail= function(user){
-        return usersMap[user];
+    },
+
+    buildAccountAttribute: function(accountData, attributeKey) {
+      var attribute = accountData.attributes[attributeKey];
+      if (!attribute) {
+        return;
+      }
+      if (attribute.business_type === 'owner') {
+        return this.addOwnerAttribute(accountData, attributeKey);
+      }
+      return this.buildAttributeObject(attribute.display_name, this.attributeValueDisplay(attributeKey, attribute));
+    },
+
+    buildAccountStatus: function(accountData) {
+      return {
+        isStatus: true,
+        status: _.capitalize(accountData.status_group),
+        lifeCycle: accountData.status,
+        showStatus: accountData.status_group.toLowerCase() !== accountData.status.toLowerCase(),
       };
+    },
+
+    buildAccountHealth: function(accountData) {
+      var health = _.get(accountData, 'health.curr');
+      var healthObject = {
+        isHealth: true,
+      };
+      switch (health) {
+        case 'green':
+          healthObject.accountHealth = 'Good';
+          healthObject.healthCSS = 'healthGood';
+          break;
+        case 'red':
+          healthObject.accountHealth = 'Poor';
+          healthObject.healthCSS = 'healthPoor';
+          break;
+        case 'yellow':
+          healthObject.accountHealth = 'Average';
+          healthObject.healthCSS = 'healthAverage';
+          break;
+        default:
+          healthObject.accountHealth = 'Undefined';
+          healthObject.healthCSS = '';
+      }
+      return healthObject;
+    },
+
+    buildEngagementScore: function(accountData) {
+        var currScore = _.get(accountData, 'metrics.score.curr') || 0;
+        var prevScore = _.get(accountData, 'metrics.score.prev') || 0;
+        var scoreChange = currScore - prevScore;
+        return {
+          isEngagementScore: true,
+          score: currScore,
+          showTrend: scoreChange !== 0,
+          trendUp: scoreChange > 0,
+          trend: Math.abs(scoreChange),
+        };
+    },
+
+    buildUsageFrequency: function(accountData) {
+      return this.buildAttributeObject('Usage Frequency', _.capitalize(accountData.usage_frequency.curr));
+    },
+
+    buildCreationDate: function(accountData) {
+      var createDate = _.get(accountData, ['attributes', 'Create Date', 'val']);
+      var tmpCreateDate = new Date(createDate);
+      return this.buildAttributeObject('Account Created', this.timeago(tmpCreateDate.getTime()));
+    },
+
+    handleAccountData: function(data) {
       if (data.errors) {
         this.showError(this.I18n.t('global.error.orders'), data.errors);
         return;
       }
-      if (data.account)
-      {
-        var that = this;
-        var tmpAccount = data.account;
-        var attributesMap = this.getAttributesMap();
-        var usersMap = this.usersMap;
-
-        this.customer.extraAttributes = [];
-
-        // Status
-        this.customer.accountStatus = this.capitalize(tmpAccount.status_group);
-        this.customer.accountLifecycle = tmpAccount.status;
-        if (tmpAccount.status_group.toLowerCase() == tmpAccount.status.toLowerCase())
-        {
-          this.customer.showStatus = false;
+      if (data.account) {
+        var totangoAttributes = this.settings.totango_attributes || '';
+        var additionalAttributes = this.settings.extra_totango_attributes || '[]';
+        var additionalAttributesArr = [];
+        try {
+          additionalAttributesArr = JSON.parse(additionalAttributes);
+        } catch (e) {
+          console.error('extra_totango_attributes must be a an array of strings');
         }
-        else
-        {
-          this.customer.showStatus = true;
-        }
-
-        // Health
-        var tmpHealth = _.get(tmpAccount, 'health.curr');
-        if (tmpHealth == 'green')
-        {
-          this.customer.accountHealth = 'Good';
-          this.customer.healthCSS = 'healthGood';
-        }
-        else if (tmpHealth == 'red')
-        {
-          this.customer.accountHealth = 'Poor';
-          this.customer.healthCSS = 'healthPoor';
-        }
-        else if (tmpHealth == 'yellow')
-        {
-          this.customer.accountHealth = 'Average';
-          this.customer.healthCSS = 'healthAverage';
-        }
-        else
-        {
-          this.customer.accountHealth = 'Undefined';
-        }
-
-        // Engagement
-        var currScore = _.get(tmpAccount, 'metrics.score.curr') || 0;
-        var prevScore = _.get(tmpAccount, 'metrics.score.prev') || 0;
-        var scoreChange = currScore - prevScore;
-        this.customer.accountEngagement = currScore;
-        this.customer.accountEngagementShowTrend = scoreChange !== 0;
-        if (scoreChange > 0)
-        {
-            this.customer.accountEngagementTrendUp = true;
-        }
-        else
-        {
-            this.customer.accountEngagementTrendUp = false;
-        }
-        this.customer.accountEngagementTrend = Math.abs(scoreChange);
-
-        // Usage frequency
-        this.customer.accountUsageFrequency = this.capitalize(tmpAccount.usage_frequency.curr);
-
-        // Attributes (Contract value, Renewal date)
-        var tmpContractValue = tmpAccount.attributes['Contract Value'];
-        if (tmpContractValue)
-        {
-          this.customer.contractValue = "$"+this.formatNumber(tmpContractValue.val,'0,000');
-          this.customer.contractValueDisplayName = attributeDisplayName('Contract Value');
-        }
-        var tmpContractRenewal = tmpAccount.attributes['Contract Renewal Date'];
-        if (tmpContractRenewal && !_.isEmpty(tmpContractRenewal.val))
-        {
-          this.customer.contractRenewal = this.dateToStr(new Date (tmpContractRenewal.val));
-          this.customer.contractRenewalDisplayName = attributeDisplayName('Contract Renewal Date');
-        }
-        var tmpSuccessManager = tmpAccount.attributes['Success Manager'];
-        if (tmpSuccessManager)
-        {
-          this.customer.successManager = tmpSuccessManager.val;
-          this.customer.successManagerDisplayName = attributeDisplayName('Success Manager');
-          if(getUserEmail(this.customer.successManager)){
-            this.customer.successManagerEmail = getUserEmail(this.customer.successManager);
+        var attributesArr = totangoAttributes.split('\n').concat(additionalAttributesArr);
+        this.customer.attributes = _.compact(attributesArr.map((attributeKey) => {
+          switch (attributeKey) {
+            case 'status':
+              return this.buildAccountStatus(data.account);
+            case 'health':
+              return this.buildAccountHealth(data.account);
+            case 'Engagement Score':
+              return this.buildEngagementScore(data.account);
+            case 'Usage Frequency':
+              return this.buildUsageFrequency(data.account);
+            case 'Account Created':
+              return this.buildCreationDate(data.account);
+            default: {
+              return this.buildAccountAttribute(data.account, attributeKey);
+            }
           }
-        }
-        var tmpSalesManager = tmpAccount.attributes['Sales Manager'];
-        if (tmpSalesManager)
-        {
-          this.customer.salesManager = tmpSalesManager.val;
-          this.customer.salesManagerDisplayName = attributeDisplayName('Sales Manager');
-          if(getUserEmail(this.customer.salesManager)){
-            this.customer.salesManagerEmail = getUserEmail(this.customer.salesManager);
-          }
-        }
-        var tmpLicences = tmpAccount.attributes.Licenses;
-        if (tmpLicences)
-        {
-          this.customer.Licenses = this.formatNumber(tmpLicences.val,'0,000');
-          this.customer.LicensesDisplayName = attributeDisplayName('Licenses');
-        }
-
-        // Extra attributes
-        var extra_totango_attributes = this.settings.extra_totango_attributes;
-        var extraAttributesArr;
-        if(extra_totango_attributes)
-        {
-          try{
-              extraAttributesArr=JSON.parse(extra_totango_attributes);
-              // TODO: formatting.
-              for( var i = 0 ;i < extraAttributesArr.length; i++ ) {
-                if(tmpAccount.attributes[extraAttributesArr[i]])
-                {
-                  this.customer.extraAttributes.push(
-                    {
-                      displayName: attributeDisplayName(extraAttributesArr[i]),
-                      value: attributeValueDisplay(extraAttributesArr[i])
-                    }
-                  );
-                }
-              }
-          }catch(e){
-              alert("Error defining extra attributes array format");
-          }
-        }
-
-
-
-        // Create Date
-        var createDate = _.get(tmpAccount, ['attributes', 'Create Date', 'val']);
-        var tmpCreateDate = new Date(createDate);
-        this.customer.accountCreateDate = this.timeago(tmpCreateDate.getTime());
+        }));
 
         // Account tags
-        var totAttribute;
-        var tmpAccountTags = [];
-        var rowCharCount = 0;
-        var hasExpand = false;
+        if (this.settings.show_tags) {
+          var tmpAccountTags = [];
+          var rowCharCount = 0;
+          var hasExpand = false;
 
-        _.forEach(tmpAccount.tags, function(tag) {
-          rowCharCount += 8;
-          rowCharCount += tag.length;
-          
-          var tmpTagObj = {
-            "tag" : tag,
-            "cssClass" : 'totFirst'
-          };
-          if (rowCharCount > 62) {
-            if (!hasExpand) {
-              tmpAccountTags.push({
-                "tag" : "More...",
-                "cssClass" : 'totMoreLessButton totExpandButton ',
-              });
-              hasExpand = true;
+          _.forEach(data.account.tags, function(tag) {
+            rowCharCount += 8;
+            rowCharCount += tag.length;
+            
+            var tmpTagObj = {
+              "tag" : tag,
+              "cssClass" : 'totFirst'
+            };
+            if (rowCharCount > 62) {
+              if (!hasExpand) {
+                tmpAccountTags.push({
+                  "tag" : "More...",
+                  "cssClass" : 'totMoreLessButton totExpandButton ',
+                });
+                hasExpand = true;
+              }
+              tmpTagObj.cssClass = 'totExpand';
             }
-            tmpTagObj.cssClass = 'totExpand';
+            tmpAccountTags.push(tmpTagObj);
+          });
+          if (hasExpand) {
+              tmpAccountTags.push({
+                "tag" : "Less...",
+                "cssClass" : 'totExpand totMoreLessButton totExtractButton',
+              });
           }
-          tmpAccountTags.push(tmpTagObj);
-        });
-        if (hasExpand) {
-            tmpAccountTags.push({
-              "tag" : "Less...",
-              "cssClass" : 'totExpand totMoreLessButton totExtractButton',
-            });
+
+          this.customer.accountTags = tmpAccountTags;
         }
-
-        this.customer.accountTags = tmpAccountTags;
-
 
         this.customer.canvasHasAccount = true;
         this.attemptCanvasRefresh();
       }
     },
 
-    getGravatarImgLink: function(email,size)
-    {
+    getGravatarImgLink: function(email,size) {
       var mail="";
 
       if (email)
@@ -1013,11 +1149,6 @@ $(function() {
     {
       var monthsShort= ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       return ''+monthsShort[dateToConvert.getMonth()]+' '+dateToConvert.getDate()+', '+dateToConvert.getFullYear();
-    },
-
-    capitalize: function(str) {
-      if (!str || str.length < 1) { return '';}
-      return str.charAt(0).toUpperCase() + str.substr(1);
     },
 
     updateTemplate: function(name, data, klass, onSuccess) {
