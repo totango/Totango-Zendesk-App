@@ -99,9 +99,14 @@
       </h5>
     {{/if}}
 
+
     {{#if isAttribute}}
       <h5>{{displayName}}</h5>
-      <h5 class="totInsights">{{value}}</h5>
+      {{#if isLink}}
+        <a target="_blank" href={{linkValue}}>{{value}}</a>
+      {{else}}
+        <h5 class="totInsights">{{value}}</h5>
+      {{/if}}
     {{/if}}
     <br clear="both">
   {{/attributes}}
