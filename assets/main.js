@@ -187,6 +187,8 @@ var currencyMap = {
   ZWL: '$'
 };
 
+var urlRegex = /^(http(s)?:\/\/)?(www\.)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
+
 $(function() {
 
   var client = ZAFClient.init();
@@ -828,10 +830,17 @@ $(function() {
     },
 
     buildAttributeObject: function(name, value) {
+      var isLink = urlRegex.test(value);
+      var linkValue = value;
+      if (isLink && value.indexOf('http') !== 0) {
+        linkValue = 'http://' + value;
+      }
       return {
+        isLink: urlRegex.test(value),
+        linkValue: linkValue,
         isAttribute: true,
         displayName: name,
-        value: value
+        value: value,
       };
     },
 
