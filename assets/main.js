@@ -256,7 +256,7 @@ $(function() {
         headers  : {
           'app-token': "{{setting.api_key}}"
         },
-        url      : "https://app.totango.com/api/" + (version || "v1") + "/" + resource,
+        url      : "https://" + this.apiUrl + "/api/" + (version || "v1") + "/" + resource,
         method   : 'GET',
         secure: true,
         dataType : 'json'
@@ -268,7 +268,7 @@ $(function() {
         headers  : {
           'app-token': "{{setting.api_key}}"
         },
-        url      : 'https://app.totango.com/api/v1/' + resource,
+        url      : "https://" + this.apiUrl + "/api/v1/" + resource,
         method   : 'POST',
         secure: true,
         dataType : 'json',
@@ -401,6 +401,27 @@ $(function() {
       return uri;
     },
 
+    getApiUrl: async function() {
+      this.apiUrl = 'api.totango.com';
+      if (this.settings.service_id) {
+        try {
+          const serviceData = await client.request({
+            url      : 'https://api.totango.com/domains/',
+            method   : 'GET',
+            dataType: 'json',
+            data: {
+              service_id: this.settings.service_id
+            }
+          });
+          if (serviceData.site === 't11') {
+            this.apiUrl = 'api-eu1.totango.com';
+          }
+        } catch (error) {
+          console.error('error while fetching api url', error);
+        }
+      }
+    },
+
     initMetadata: function() {
         this.settings = {};
         return client.metadata().then(function(metadata) {
@@ -446,18 +467,16 @@ $(function() {
         }.bind(this));
     },
 
-    init: function() {
-        this.initMetadata().then(function() {
-            if (this.settings.fallback_custom_field) {
-                this.setCustomFiled();
-            }
-            this.getUserEmail().then(function(email) {
-                this.userEmail = this.settings.use_hashed_email ? this.MD5(email).toString() : email;
-                this.setLocale().then(function() {
-                    this.queryCustomer();
-                }.bind(this));
-            }.bind(this));
-        }.bind(this));
+    init: async function() {
+      await this.initMetadata();
+      await this.getApiUrl();
+      if (this.settings.fallback_custom_field) {
+          this.setCustomFiled();
+      }
+      const email = this.getUserEmail();
+      this.userEmail = this.settings.use_hashed_email ? this.MD5(email).toString() : email;
+      await this.setLocale();
+      this.queryCustomer();
     },
 
     queryCustomer: function() {

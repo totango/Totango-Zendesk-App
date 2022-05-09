@@ -8,6 +8,9 @@
       "api_key": {
         "label": "Api Key"
       },
+      "service_id": {
+        "label": "Your Totango service id"
+      },
       "fallback_custom_field": {
         "label": "Zendesk attribute to match against Totango user id (default is the Zendesk user email)"
       },
