@@ -402,7 +402,7 @@ $(function() {
     },
 
     getApiUrl: async function() {
-      this.apiUrl = 'api.totango.com';
+      this.apiUrl = 'app.totango.com';
       if (this.settings.service_id) {
         try {
           const serviceData = await client.request({
@@ -473,7 +473,7 @@ $(function() {
       if (this.settings.fallback_custom_field) {
           this.setCustomFiled();
       }
-      const email = this.getUserEmail();
+      const email = await this.getUserEmail();
       this.userEmail = this.settings.use_hashed_email ? this.MD5(email).toString() : email;
       await this.setLocale();
       this.queryCustomer();
