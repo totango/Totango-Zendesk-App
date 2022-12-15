@@ -9,7 +9,7 @@
         "label": "Api Key"
       },
       "service_id": {
-        "label": "Your Totango service id"
+        "label": "Your Totango service id (numbers only, for example, if your service id in Totango is SP-123321-01, input 123321)"
       },
       "fallback_custom_field": {
         "label": "Zendesk attribute to match against Totango user id (default is the Zendesk user email)"

@@ -27,7 +27,7 @@
     },
     {
       "name": "service_id",
-      "type": "text",
+      "type": "number",
       "required": false
     },
     {
